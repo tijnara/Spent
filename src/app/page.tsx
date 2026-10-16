@@ -22,7 +22,7 @@ export default function LandingPage() {
         {/* Hero Section */}
         <main className="flex-grow flex flex-col items-center justify-center text-center px-6 py-20 bg-gradient-to-b from-spent-violet via-spent-violet to-spent-violet-dark text-white">
           <h1 className="text-4xl sm:text-6xl font-extrabold mb-6 tracking-tight max-w-3xl leading-tight">
-            Track Every Dollar. <br />
+            Track Every Cents. <br />
             <span className="text-spent-yellow">Empower Your Wallet.</span>
           </h1>
           <p className="text-base sm:text-xl text-spent-violet-light mb-10 max-w-2xl leading-relaxed">
