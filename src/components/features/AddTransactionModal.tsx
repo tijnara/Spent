@@ -22,12 +22,35 @@ export default function AddTransactionModal({ categories }: { categories: Catego
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
         setLoading(true)
-        const formData = new FormData(e.currentTarget)
+
+        const form = e.currentTarget
+        const formData = new FormData(form)
         formData.set('type', type)
         if (selectedCategory) {
             formData.set('category_id', selectedCategory)
         }
 
+        // OFFLINE CHECK
+        if (!navigator.onLine) {
+            const offlineItem: Record<string, string> = {
+                amount: formData.get('amount') as string,
+                type: formData.get('type') as string,
+                category_id: (formData.get('category_id') as string) || '',
+                note: (formData.get('note') as string) || '',
+                transaction_date: (formData.get('transaction_date') as string) || new Date().toISOString().split('T')[0],
+            }
+
+            const existingQueue = JSON.parse(localStorage.getItem('spent_offline_queue') || '[]')
+            existingQueue.push(offlineItem)
+            localStorage.setItem('spent_offline_queue', JSON.stringify(existingQueue))
+
+            alert('⚡ Saved offline! Your transaction will sync with your account when you reconnect.')
+            setLoading(false)
+            setIsOpen(false)
+            return
+        }
+
+        // ONLINE FLOW
         try {
             await addTransaction(formData)
             setIsOpen(false)
@@ -100,7 +123,6 @@ export default function AddTransactionModal({ categories }: { categories: Catego
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
-                            {/* Amount Input with Philippine Peso Symbol */}
                             <div>
                                 <label className="block text-xs font-semibold uppercase tracking-wider text-muted mb-1">
                                     Amount
@@ -121,7 +143,6 @@ export default function AddTransactionModal({ categories }: { categories: Catego
                                 </div>
                             </div>
 
-                            {/* Category Selection Chips */}
                             <div>
                                 <label className="block text-xs font-semibold uppercase tracking-wider text-muted mb-2">
                                     Category
@@ -145,7 +166,6 @@ export default function AddTransactionModal({ categories }: { categories: Catego
                                 </div>
                             </div>
 
-                            {/* Note Input */}
                             <div>
                                 <label className="block text-xs font-semibold uppercase tracking-wider text-muted mb-1">
                                     Note / Description
@@ -158,7 +178,6 @@ export default function AddTransactionModal({ categories }: { categories: Catego
                                 />
                             </div>
 
-                            {/* Date Input */}
                             <div>
                                 <label className="block text-xs font-semibold uppercase tracking-wider text-muted mb-1">
                                     Date

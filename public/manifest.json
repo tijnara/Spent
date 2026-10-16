@@ -1,24 +1,25 @@
 {
-  "id": "",
-  "name": "Spent",
+  "name": "Spent | Track Every Cents",
   "short_name": "Spent",
-  "description": "A beautiful, mobile-first Daily Budget Tracker PWA built with Next.js, TypeScript, and Tailwind CSS. Track your daily expenses effortlessly with a vibrant, high-contrast violet and yellow theme.",
-  "categories": "",
-  "start_url": "/",
-  "display": "browser",
-  "display_override": [
-    "browser"
-  ],
-  "background_color": "#edce02",
-  "theme_color": "#b30092",
-  "orientation": "any",
-  "launch_handler": {
-    "client_mode": "auto"
-  },
-  "icons": [],
-  "screenshots": [],
-  "prefer_related_applications": false,
-  "related_applications": [],
-  "protocol_handlers": [],
-  "file_handlers": []
+  "description": "Fast, mobile-first, offline-ready daily budget tracker.",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#1a103c",
+  "theme_color": "#6b46c1",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
 }
