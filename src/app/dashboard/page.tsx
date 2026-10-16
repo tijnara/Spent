@@ -1,6 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import AddTransactionModal from '@/components/features/AddTransactionModal'
 
+// Enforce dynamic server rendering per request (prevents static build errors)
+export const dynamic = 'force-dynamic'
+
 export default async function DashboardPage() {
     const supabase = await createClient()
 
@@ -56,21 +59,21 @@ export default async function DashboardPage() {
                 <div className="bg-card border border-card-border p-5 rounded-3xl shadow-sm relative overflow-hidden">
                     <div className="h-1.5 w-16 bg-spent-yellow rounded-full mb-3"></div>
                     <span className="text-xs font-bold uppercase tracking-wider text-muted">
-            Spent Today
-          </span>
+                        Spent Today
+                    </span>
                     <p className="text-3xl font-black text-card-foreground mt-1">
                         ${spentToday.toFixed(2)}
                     </p>
                     <span className="text-xs text-muted mt-2 block font-medium">
-            Daily tracker limit resets at midnight
-          </span>
+                        Daily tracker limit resets at midnight
+                    </span>
                 </div>
 
                 {/* Total Balance Card */}
                 <div className="bg-card border border-card-border p-5 rounded-3xl shadow-sm">
-          <span className="text-xs font-bold uppercase tracking-wider text-muted">
-            Net Balance
-          </span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-muted">
+                        Net Balance
+                    </span>
                     <p
                         className={`text-3xl font-black mt-1 ${
                             netBalance >= 0 ? 'text-card-foreground' : 'text-red-500'
@@ -79,28 +82,28 @@ export default async function DashboardPage() {
                         ${netBalance.toFixed(2)}
                     </p>
                     <span className="text-xs text-muted mt-2 block font-medium">
-            Income minus expenses
-          </span>
+                        Income minus expenses
+                    </span>
                 </div>
 
                 {/* Income vs Expenses Card */}
                 <div className="bg-card border border-card-border p-5 rounded-3xl shadow-sm flex flex-col justify-between">
-          <span className="text-xs font-bold uppercase tracking-wider text-muted">
-            Activity Summary
-          </span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-muted">
+                        Activity Summary
+                    </span>
                     <div className="flex justify-between items-center mt-2">
                         <div>
                             <span className="text-xs text-muted block">Income</span>
                             <span className="font-extrabold text-emerald-600 dark:text-emerald-400">
-                +${totalIncome.toFixed(2)}
-              </span>
+                                +${totalIncome.toFixed(2)}
+                            </span>
                         </div>
                         <div className="h-8 w-px bg-card-border"></div>
                         <div>
                             <span className="text-xs text-muted block">Expenses</span>
                             <span className="font-extrabold text-red-500">
-                -${totalExpense.toFixed(2)}
-              </span>
+                                -${totalExpense.toFixed(2)}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -113,8 +116,8 @@ export default async function DashboardPage() {
                         Recent Transactions
                     </h2>
                     <span className="text-xs font-bold text-muted">
-            {safeTransactions.length} Total
-          </span>
+                        {safeTransactions.length} Total
+                    </span>
                 </div>
 
                 {safeTransactions.length === 0 ? (
@@ -130,7 +133,6 @@ export default async function DashboardPage() {
                 ) : (
                     <div className="divide-y divide-card-border">
                         {safeTransactions.map((tx) => {
-                            // Supabase join typing resolution
                             const categoryData = Array.isArray(tx.categories)
                                 ? tx.categories[0]
                                 : tx.categories
@@ -167,8 +169,8 @@ export default async function DashboardPage() {
                                                 : 'text-card-foreground'
                                         }`}
                                     >
-                    {tx.type === 'income' ? '+' : '-'}${Number(tx.amount).toFixed(2)}
-                  </span>
+                                        {tx.type === 'income' ? '+' : '-'}${Number(tx.amount).toFixed(2)}
+                                    </span>
                                 </div>
                             )
                         })}

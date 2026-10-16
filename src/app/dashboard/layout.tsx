@@ -3,6 +3,9 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { signOut } from './actions'
 
+// Enforce dynamic server rendering per request (prevents static build errors)
+export const dynamic = 'force-dynamic'
+
 export default async function DashboardLayout({
                                                   children,
                                               }: {
@@ -25,18 +28,18 @@ export default async function DashboardLayout({
                             S
                         </div>
                         <span className="text-xl font-extrabold text-card-foreground tracking-tight">
-              Spent
-            </span>
+                            Spent
+                        </span>
                     </Link>
 
                     <div className="flex items-center gap-4">
-            <span className="hidden sm:inline-block text-xs font-medium text-muted">
-              {user.email}
-            </span>
+                        <span className="hidden sm:inline-block text-xs font-medium text-muted">
+                            {user.email}
+                        </span>
                         <form action={signOut}>
                             <button
                                 type="submit"
-                                className="text-xs sm:text-sm font-semibold text-muted hover:text-red-500 transition-colors py-1.5 px-3 rounded-lg border border-card-border hover:border-red-500/30"
+                                className="text-xs sm:text-sm font-semibold text-muted hover:text-red-500 transition-colors py-1.5 px-3 rounded-lg border border-card-border hover:border-red-500/30 cursor-pointer"
                             >
                                 Sign Out
                             </button>
@@ -45,7 +48,7 @@ export default async function DashboardLayout({
                 </div>
             </header>
 
-            {/* Main Content Area (extra bottom padding for mobile navigation bar) */}
+            {/* Main Content Area */}
             <main className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-8 pb-28 sm:pb-12">
                 {children}
             </main>
