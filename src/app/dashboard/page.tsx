@@ -1,11 +1,29 @@
+import { Suspense } from 'react'
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import AddTransactionModal from '@/components/features/AddTransactionModal'
 
-// Enforce dynamic server rendering per request (prevents static build errors)
-export const dynamic = 'force-dynamic'
+function DashboardSkeleton() {
+    return (
+        <div className="space-y-6 animate-pulse">
+            <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="h-32 bg-card border border-card-border rounded-3xl p-5"></div>
+                <div className="h-32 bg-card border border-card-border rounded-3xl p-5"></div>
+                <div className="h-32 bg-card border border-card-border rounded-3xl p-5"></div>
+            </section>
+            <section className="h-72 bg-card border border-card-border rounded-3xl p-5"></section>
+        </div>
+    )
+}
 
-export default async function DashboardPage() {
+async function DashboardContent() {
     const supabase = await createClient()
+
+    // Verify user session
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+        redirect('/login')
+    }
 
     // 1. Fetch user categories
     const { data: categories } = await supabase
@@ -17,19 +35,19 @@ export default async function DashboardPage() {
     const { data: transactions } = await supabase
         .from('transactions')
         .select(`
-      id,
-      amount,
-      type,
-      note,
-      transaction_date,
-      created_at,
-      categories (
-        id,
-        name,
-        icon,
-        color
-      )
-    `)
+            id,
+            amount,
+            type,
+            note,
+            transaction_date,
+            created_at,
+            categories (
+                id,
+                name,
+                icon,
+                color
+            )
+        `)
         .order('transaction_date', { ascending: false })
         .order('created_at', { ascending: false })
 
@@ -178,8 +196,16 @@ export default async function DashboardPage() {
                 )}
             </section>
 
-            {/* Floating Action Button & Interactive Form */}
+            {/* Floating Action Button & Modal */}
             <AddTransactionModal categories={categories || []} />
         </div>
+    )
+}
+
+export default function DashboardPage() {
+    return (
+        <Suspense fallback={<DashboardSkeleton />}>
+            <DashboardContent />
+        </Suspense>
     )
 }

@@ -1,23 +1,38 @@
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import { signOut } from './actions'
 
-// Enforce dynamic server rendering per request (prevents static build errors)
-export const dynamic = 'force-dynamic'
-
-export default async function DashboardLayout({
-                                                  children,
-                                              }: {
-    children: React.ReactNode
-}) {
+async function UserProfileHeader() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-        redirect('/login')
+        return null
     }
 
+    return (
+        <div className="flex items-center gap-4">
+            <span className="hidden sm:inline-block text-xs font-medium text-muted">
+                {user.email}
+            </span>
+            <form action={signOut}>
+                <button
+                    type="submit"
+                    className="text-xs sm:text-sm font-semibold text-muted hover:text-red-500 transition-colors py-1.5 px-3 rounded-lg border border-card-border hover:border-red-500/30 cursor-pointer"
+                >
+                    Sign Out
+                </button>
+            </form>
+        </div>
+    )
+}
+
+export default function DashboardLayout({
+                                            children,
+                                        }: {
+    children: React.ReactNode
+}) {
     return (
         <div className="min-h-screen bg-background flex flex-col justify-between">
             {/* Top Navbar */}
@@ -32,19 +47,9 @@ export default async function DashboardLayout({
                         </span>
                     </Link>
 
-                    <div className="flex items-center gap-4">
-                        <span className="hidden sm:inline-block text-xs font-medium text-muted">
-                            {user.email}
-                        </span>
-                        <form action={signOut}>
-                            <button
-                                type="submit"
-                                className="text-xs sm:text-sm font-semibold text-muted hover:text-red-500 transition-colors py-1.5 px-3 rounded-lg border border-card-border hover:border-red-500/30 cursor-pointer"
-                            >
-                                Sign Out
-                            </button>
-                        </form>
-                    </div>
+                    <Suspense fallback={<div className="h-8 w-20 bg-input-bg rounded-lg animate-pulse" />}>
+                        <UserProfileHeader />
+                    </Suspense>
                 </div>
             </header>
 
@@ -53,7 +58,7 @@ export default async function DashboardLayout({
                 {children}
             </main>
 
-            {/* Fixed Mobile Bottom Bar */}
+            {/* Mobile Bottom Navigation Bar */}
             <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-md border-t border-card-border px-6 py-2 flex items-center justify-around">
                 <Link
                     href="/dashboard"
