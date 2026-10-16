@@ -1,9 +1,13 @@
 import Link from 'next/link'
 import { Suspense } from 'react'
+import { connection } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { signOut } from './actions'
 
 async function UserProfileHeader() {
+    // Explicitly opt into request-time rendering for dynamic auth & timestamps
+    await connection()
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -35,7 +39,7 @@ export default function DashboardLayout({
 }) {
     return (
         <div className="min-h-screen bg-background flex flex-col justify-between">
-            {/* Top Navbar */}
+            {/* Static Header Shell */}
             <header className="sticky top-0 z-30 bg-card border-b border-card-border px-4 py-3 sm:px-8">
                 <div className="max-w-5xl mx-auto flex items-center justify-between">
                     <Link href="/dashboard" className="flex items-center gap-2">

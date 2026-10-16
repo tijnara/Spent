@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
+import { connection } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import AddTransactionModal from '@/components/features/AddTransactionModal'
 
@@ -17,9 +18,10 @@ function DashboardSkeleton() {
 }
 
 async function DashboardContent() {
+    await connection()
+
     const supabase = await createClient()
 
-    // Verify user session
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
         redirect('/login')
@@ -73,21 +75,21 @@ async function DashboardContent() {
         <div className="space-y-6">
             {/* Overview Metric Cards */}
             <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {/* Spent Today Highlight Card */}
+                {/* Spent Today Card */}
                 <div className="bg-card border border-card-border p-5 rounded-3xl shadow-sm relative overflow-hidden">
                     <div className="h-1.5 w-16 bg-spent-yellow rounded-full mb-3"></div>
                     <span className="text-xs font-bold uppercase tracking-wider text-muted">
                         Spent Today
                     </span>
                     <p className="text-3xl font-black text-card-foreground mt-1">
-                        ${spentToday.toFixed(2)}
+                        ₱{spentToday.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                     <span className="text-xs text-muted mt-2 block font-medium">
                         Daily tracker limit resets at midnight
                     </span>
                 </div>
 
-                {/* Total Balance Card */}
+                {/* Net Balance Card */}
                 <div className="bg-card border border-card-border p-5 rounded-3xl shadow-sm">
                     <span className="text-xs font-bold uppercase tracking-wider text-muted">
                         Net Balance
@@ -97,14 +99,14 @@ async function DashboardContent() {
                             netBalance >= 0 ? 'text-card-foreground' : 'text-red-500'
                         }`}
                     >
-                        ${netBalance.toFixed(2)}
+                        ₱{netBalance.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                     <span className="text-xs text-muted mt-2 block font-medium">
                         Income minus expenses
                     </span>
                 </div>
 
-                {/* Income vs Expenses Card */}
+                {/* Activity Summary Card */}
                 <div className="bg-card border border-card-border p-5 rounded-3xl shadow-sm flex flex-col justify-between">
                     <span className="text-xs font-bold uppercase tracking-wider text-muted">
                         Activity Summary
@@ -113,14 +115,14 @@ async function DashboardContent() {
                         <div>
                             <span className="text-xs text-muted block">Income</span>
                             <span className="font-extrabold text-emerald-600 dark:text-emerald-400">
-                                +${totalIncome.toFixed(2)}
+                                +₱{totalIncome.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                         </div>
                         <div className="h-8 w-px bg-card-border"></div>
                         <div>
                             <span className="text-xs text-muted block">Expenses</span>
                             <span className="font-extrabold text-red-500">
-                                -${totalExpense.toFixed(2)}
+                                -₱{totalExpense.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                         </div>
                     </div>
@@ -187,7 +189,11 @@ async function DashboardContent() {
                                                 : 'text-card-foreground'
                                         }`}
                                     >
-                                        {tx.type === 'income' ? '+' : '-'}${Number(tx.amount).toFixed(2)}
+                                        {tx.type === 'income' ? '+₱' : '-₱'}
+                                        {Number(tx.amount).toLocaleString('en-PH', {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2,
+                                        })}
                                     </span>
                                 </div>
                             )

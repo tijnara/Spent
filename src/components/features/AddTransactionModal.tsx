@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { addTransaction } from '@/app/dashboard/actions'
+
 interface Category {
     id: string
     name: string
@@ -58,7 +59,7 @@ export default function AddTransactionModal({ categories }: { categories: Catego
                             <h3 className="text-xl font-extrabold text-card-foreground">Log Transaction</h3>
                             <button
                                 onClick={() => setIsOpen(false)}
-                                className="text-muted hover:text-card-foreground font-bold text-xl px-2 py-1"
+                                className="text-muted hover:text-card-foreground font-bold text-xl px-2 py-1 cursor-pointer"
                             >
                                 ✕
                             </button>
@@ -73,7 +74,7 @@ export default function AddTransactionModal({ categories }: { categories: Catego
                                     const firstExpense = categories.find((c) => c.type === 'expense')
                                     if (firstExpense) setSelectedCategory(firstExpense.id)
                                 }}
-                                className={`py-2 text-sm font-bold rounded-lg transition-all ${
+                                className={`py-2 text-sm font-bold rounded-lg transition-all cursor-pointer ${
                                     type === 'expense'
                                         ? 'bg-spent-violet text-white shadow-sm'
                                         : 'text-muted hover:text-card-foreground'
@@ -88,7 +89,7 @@ export default function AddTransactionModal({ categories }: { categories: Catego
                                     const firstIncome = categories.find((c) => c.type === 'income')
                                     if (firstIncome) setSelectedCategory(firstIncome.id)
                                 }}
-                                className={`py-2 text-sm font-bold rounded-lg transition-all ${
+                                className={`py-2 text-sm font-bold rounded-lg transition-all cursor-pointer ${
                                     type === 'income'
                                         ? 'bg-spent-yellow text-spent-violet-dark shadow-sm'
                                         : 'text-muted hover:text-card-foreground'
@@ -99,14 +100,14 @@ export default function AddTransactionModal({ categories }: { categories: Catego
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
-                            {/* Amount Input */}
+                            {/* Amount Input with Philippine Peso Symbol */}
                             <div>
                                 <label className="block text-xs font-semibold uppercase tracking-wider text-muted mb-1">
                                     Amount
                                 </label>
                                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-muted">
-                    $
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-muted select-none">
+                    ₱
                   </span>
                                     <input
                                         name="amount"
@@ -115,7 +116,7 @@ export default function AddTransactionModal({ categories }: { categories: Catego
                                         placeholder="0.00"
                                         required
                                         autoFocus
-                                        className="w-full pl-9 pr-4 py-3 bg-input-bg border border-input-border rounded-xl text-2xl font-extrabold text-input-text placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-spent-violet"
+                                        className="w-full pl-10 pr-4 py-3 bg-input-bg border border-input-border rounded-xl text-2xl font-extrabold text-input-text placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-spent-violet"
                                     />
                                 </div>
                             </div>
@@ -131,7 +132,7 @@ export default function AddTransactionModal({ categories }: { categories: Catego
                                             key={cat.id}
                                             type="button"
                                             onClick={() => setSelectedCategory(cat.id)}
-                                            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition-all ${
+                                            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                                                 selectedCategory === cat.id
                                                     ? 'border-spent-violet bg-spent-violet/10 text-spent-violet dark:text-spent-violet-light ring-2 ring-spent-violet/30'
                                                     : 'border-input-border bg-input-bg text-muted hover:text-card-foreground'
@@ -152,7 +153,7 @@ export default function AddTransactionModal({ categories }: { categories: Catego
                                 <input
                                     name="note"
                                     type="text"
-                                    placeholder="e.g. Lunch with team, Groceries"
+                                    placeholder="e.g. Lunch, Grocery, Jeepney/Grab fare"
                                     className="w-full px-4 py-2.5 bg-input-bg border border-input-border rounded-xl text-sm text-input-text placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-spent-violet"
                                 />
                             </div>
