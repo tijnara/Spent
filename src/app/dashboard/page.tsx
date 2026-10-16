@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { connection } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import AddTransactionModal from '@/components/features/AddTransactionModal'
+import TransactionList from '@/components/features/TransactionList'
 
 function DashboardSkeleton() {
     return (
@@ -43,6 +44,7 @@ async function DashboardContent() {
             note,
             transaction_date,
             created_at,
+            category_id,
             categories (
                 id,
                 name,
@@ -140,66 +142,11 @@ async function DashboardContent() {
                     </span>
                 </div>
 
-                {safeTransactions.length === 0 ? (
-                    <div className="text-center py-12">
-                        <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-spent-violet/10 flex items-center justify-center text-2xl text-spent-violet">
-                            💸
-                        </div>
-                        <p className="font-bold text-card-foreground">No transactions logged yet</p>
-                        <p className="text-xs text-muted mt-1">
-                            Tap the yellow + button to record your first daily expense!
-                        </p>
-                    </div>
-                ) : (
-                    <div className="divide-y divide-card-border">
-                        {safeTransactions.map((tx) => {
-                            const categoryData = Array.isArray(tx.categories)
-                                ? tx.categories[0]
-                                : tx.categories
-
-                            return (
-                                <div
-                                    key={tx.id}
-                                    className="py-3.5 flex items-center justify-between hover:bg-input-bg/40 px-2 rounded-xl transition-colors"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-input-bg border border-input-border flex items-center justify-center text-xl shadow-xs">
-                                            {categoryData?.icon || (tx.type === 'income' ? '💵' : '💳')}
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-sm text-card-foreground">
-                                                {tx.note || categoryData?.name || 'General Expense'}
-                                            </p>
-                                            <div className="flex items-center gap-2 text-xs text-muted mt-0.5">
-                                                <span>{tx.transaction_date}</span>
-                                                {categoryData?.name && (
-                                                    <>
-                                                        <span>•</span>
-                                                        <span>{categoryData.name}</span>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <span
-                                        className={`font-black text-sm sm:text-base ${
-                                            tx.type === 'income'
-                                                ? 'text-emerald-600 dark:text-emerald-400'
-                                                : 'text-card-foreground'
-                                        }`}
-                                    >
-                                        {tx.type === 'income' ? '+₱' : '-₱'}
-                                        {Number(tx.amount).toLocaleString('en-PH', {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2,
-                                        })}
-                                    </span>
-                                </div>
-                            )
-                        })}
-                    </div>
-                )}
+                {/* Interactive Transaction List (Handles Click to Edit & Delete Actions) */}
+                <TransactionList
+                    transactions={safeTransactions as any}
+                    categories={categories || []}
+                />
             </section>
 
             {/* Floating Action Button & Modal */}
