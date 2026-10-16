@@ -1,36 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Spent — Daily Budget Tracker
 
-## Getting Started
+A beautiful, mobile-first Progressive Web App (PWA) for tracking your daily budget. Built with Next.js, TypeScript, and Tailwind CSS. Features a vibrant violet & yellow theme and a focus on speed, accessibility, and an intuitive mobile experience.
 
-First, run the development server:
+Demo: (Add your live demo or screenshots here)
+
+## Key features
+
+- Mobile-first design with responsive layouts
+- Offline-capable PWA behaviors (installable on mobile/desktop)
+- Track daily income, expenses, and running balance
+- Simple, fast entry flow and quick actions
+- Themed UI with accessible color contrast
+- Built with TypeScript and Tailwind CSS for maintainability
+
+## Technology
+
+- Next.js (App Router)
+- TypeScript
+- Tailwind CSS
+- Vite/Bun support in dev scripts (where applicable)
+
+## Getting started
+
+1. Clone the repo
+
+```bash
+git clone https://github.com/tijnara/Spent.git
+cd Spent
+```
+
+2. Install dependencies
+
+```bash
+# npm
+npm install
+# or pnpm
+pnpm install
+# or yarn
+yarn
+```
+
+3. Run the development server
 
 ```bash
 npm run dev
 # or
-yarn dev
-# or
 pnpm dev
+# or
+yarn dev
 # or
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000 in your browser. The app uses the Next.js App Router — edit files in the `app/` directory (for example `app/page.tsx`) to get started.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `dev` — Start the development server
+- `build` — Create a production build
+- `start` — Start the production server
+- `lint` — Run TypeScript/ESLint checks
+- `format` — Run code formatter (Prettier, if configured)
 
-## Learn More
+(See package.json for the exact scripts available.)
 
-To learn more about Next.js, take a look at the following resources:
+## Deploy
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Recommended: Deploy on Vercel for best Next.js support.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+# build locally
+npm run build
+# start production
+npm run start
+```
 
-## Deploy on Vercel
+See Next.js deployment docs: https://nextjs.org/docs/app/building-your-application/deploying
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Contributing
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Contributions, bug reports, and feature requests are welcome. Please open an issue or submit a pull request with a clear description of changes and a short summary of how to test them.
+
+## License
+
+(If you have a LICENSE file, mention it here and the license type.)
+
+---
+
+A beautiful, mobile-first Daily Budget Tracker PWA built with Next.js, TypeScript, and Tailwind CSS. 
+
+Languages: TypeScript (~91%), JavaScript (~6%), CSS (~3%)
