@@ -11,39 +11,66 @@
   --spent-yellow: #ecc94b;
   --spent-yellow-dark: #d69e2e;
 
-  /* Default Light Mode */
+  /* --- LIGHT MODE SEMANTIC COLORS (DEFAULT) --- */
   --background: var(--spent-violet-bg);
-  --foreground: #171717;
-}
+  --foreground: #111827; /* gray-900 */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --card: #ffffff;
+  --card-foreground: #111827;
+  --card-border: #f3f4f6; /* gray-100 */
 
-  /* Expose custom colors to Tailwind so you can use classes like bg-spent-violet */
-  --color-spent-violet-light: var(--spent-violet-light);
-  --color-spent-violet: var(--spent-violet);
-  --color-spent-violet-dark: var(--spent-violet-dark);
-  --color-spent-violet-bg: var(--spent-violet-bg);
+  --input-bg: #f9fafb; /* gray-50 */
+  --input-border: #e5e7eb; /* gray-200 */
+  --input-text: #111827;
 
-  --color-spent-yellow-light: var(--spent-yellow-light);
-  --color-spent-yellow: var(--spent-yellow);
-  --color-spent-yellow-dark: var(--spent-yellow-dark);
+  --muted-text: #6b7280; /* gray-500 */
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Dark mode overrides (Deep violet background, light text) */
-    --background: #1a103c;
+    /* --- DARK MODE SEMANTIC COLORS --- */
+    --background: #1a103c; /* Deep brand-aligned dark background */
     --foreground: #f3e8ff;
+
+    --card: #111827; /* gray-900 */
+    --card-foreground: #f9fafb; /* gray-50 */
+    --card-border: #1f2937; /* gray-800 */
+
+    --input-bg: #1f2937; /* gray-800 */
+    --input-border: #374151; /* gray-700 */
+    --input-text: #f9fafb;
+
+    --muted-text: #9ca3af; /* gray-400 */
   }
 }
 
+@theme inline {
+  /* Map CSS variables to Tailwind classes */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-card-border: var(--card-border);
+
+  --color-input-bg: var(--input-bg);
+  --color-input-border: var(--input-border);
+  --color-input-text: var(--input-text);
+
+  --color-muted: var(--muted-text);
+
+  /* Expose Brand Colors */
+  --color-spent-violet: var(--spent-violet);
+  --color-spent-violet-light: var(--spent-violet-light);
+  --color-spent-violet-dark: var(--spent-violet-dark);
+  --color-spent-violet-bg: var(--spent-violet-bg);
+  --color-spent-yellow: var(--spent-yellow);
+  --color-spent-yellow-light: var(--spent-yellow-light);
+  --color-spent-yellow-dark: var(--spent-yellow-dark);
+}
+
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   @apply antialiased;
 }
