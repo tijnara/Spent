@@ -1,7 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  /* Spent Brand Colors */
+  --spent-violet-light: #9f7aea;
+  --spent-violet: #6b46c1;
+  --spent-violet-dark: #44337a;
+  --spent-violet-bg: #f3e8ff;
+
+  --spent-yellow-light: #fef08a;
+  --spent-yellow: #ecc94b;
+  --spent-yellow-dark: #d69e2e;
+
+  /* Default Light Mode */
+  --background: var(--spent-violet-bg);
   --foreground: #171717;
 }
 
@@ -10,17 +21,29 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Expose custom colors to Tailwind so you can use classes like bg-spent-violet */
+  --color-spent-violet-light: var(--spent-violet-light);
+  --color-spent-violet: var(--spent-violet);
+  --color-spent-violet-dark: var(--spent-violet-dark);
+  --color-spent-violet-bg: var(--spent-violet-bg);
+
+  --color-spent-yellow-light: var(--spent-yellow-light);
+  --color-spent-yellow: var(--spent-yellow);
+  --color-spent-yellow-dark: var(--spent-yellow-dark);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Dark mode overrides (Deep violet background, light text) */
+    --background: #1a103c;
+    --foreground: #f3e8ff;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  @apply antialiased;
 }
