@@ -124,11 +124,13 @@ export async function inputSalary(formData: FormData) {
         throw new Error('Please enter a valid salary amount')
     }
 
+    // 1. Update user profile active salary in Supabase
     await supabase
         .from('profiles')
         .update({ salary: amount })
         .eq('id', user.id)
 
+    // 2. Fetch salary category if present
     const { data: category } = await supabase
         .from('categories')
         .select('id')
@@ -136,12 +138,14 @@ export async function inputSalary(formData: FormData) {
         .ilike('name', '%salary%')
         .maybeSingle()
 
+    // 3. Mark previous active salaries as 'Archived Salary' so history is preserved
     await supabase
         .from('transactions')
-        .delete()
+        .update({ note: 'Archived Salary' })
         .eq('user_id', user.id)
-        .ilike('note', '%salary%')
+        .ilike('note', '%Active Salary%')
 
+    // 4. Insert the new active salary with the exact current timestamp
     const { error: insertError } = await supabase
         .from('transactions')
         .insert({
@@ -149,7 +153,7 @@ export async function inputSalary(formData: FormData) {
             amount,
             type: 'income',
             category_id: category?.id || null,
-            note,
+            note: note.toLowerCase().includes('salary') ? note : `${note} (Salary)`,
             transaction_date,
             created_at: new Date().toISOString(),
         })
@@ -162,7 +166,7 @@ export async function inputSalary(formData: FormData) {
     revalidatePath('/dashboard')
 }
 
-export async function clearAllData() {
+export async function clearAllUserData() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -170,25 +174,32 @@ export async function clearAllData() {
         redirect('/login')
     }
 
-    // 1. Delete all transactions (salary entries, expenses, income)
     const { error: txError } = await supabase
         .from('transactions')
         .delete()
         .eq('user_id', user.id)
 
     if (txError) {
-        console.error('Error deleting transactions:', txError)
-        throw new Error(txError.message)
+        console.error('Error clearing transactions:', txError)
+        throw new Error('Failed to delete transactions: ' + txError.message)
     }
 
-    // 2. Reset salary on profile
-    await supabase
+    const { error: profileError } = await supabase
         .from('profiles')
         .update({ salary: 0 })
         .eq('id', user.id)
 
+    if (profileError) {
+        console.warn('Profile salary reset warning:', profileError.message)
+    }
+
     revalidatePath('/dashboard')
     revalidatePath('/dashboard/settings')
+}
+
+// Explicit async export alias to resolve 'Export clearAllData doesn't exist' build errors
+export async function clearAllData() {
+    return clearAllUserData()
 }
 
 export async function signOut() {

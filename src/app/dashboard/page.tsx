@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import AddTransactionModal from '@/components/features/AddTransactionModal'
 import TransactionList from '@/components/features/TransactionList'
 import InputSalaryModal from '@/components/features/InputSalaryModal'
+import SalaryHistorySection, { SalaryCycle } from '@/components/features/SalaryHistorySection'
 
 interface CategoryData {
     id: string
@@ -33,6 +34,7 @@ function DashboardSkeleton() {
                 <div className="h-32 bg-card border border-card-border rounded-3xl p-5"></div>
             </section>
             <section className="h-44 bg-card border border-card-border rounded-3xl p-6"></section>
+            <section className="h-64 bg-card border border-card-border rounded-3xl p-6"></section>
             <section className="h-72 bg-card border border-card-border rounded-3xl p-5"></section>
         </div>
     )
@@ -85,7 +87,7 @@ async function DashboardContent() {
     const safeTransactions = (rawTransactions as unknown as TransactionRecord[]) || []
     const todayStr = new Date().toISOString().split('T')[0]
 
-    // General Metrics (Lifetime / Summary)
+    // General Metrics (Lifetime)
     const spentToday = safeTransactions
         .filter((t) => t.type === 'expense' && t.transaction_date === todayStr)
         .reduce((acc, t) => acc + Number(t.amount), 0)
@@ -100,37 +102,68 @@ async function DashboardContent() {
 
     const netBalance = totalIncome - totalExpense
 
-    // --- SALARY DEDUCTION LOGIC ---
-    // Locate the active salary transaction
-    const salaryEntry = safeTransactions.find(
-        (t) => t.type === 'income' && t.note?.toLowerCase().includes('salary')
-    )
+    // --- SALARY CYCLES & HISTORICAL EXPENSE GROUPING ---
+    // Extract all salary records ordered chronologically (oldest to newest)
+    const salaryTransactions = safeTransactions
+        .filter((t) => {
+            if (t.type !== 'income') return false
+            const catName = Array.isArray(t.categories) ? t.categories[0]?.name : t.categories?.name
+            return catName?.toLowerCase().includes('salary') || t.note?.toLowerCase().includes('salary')
+        })
+        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
 
-    const activeSalary = salaryEntry
-        ? Number(salaryEntry.amount)
-        : profile?.salary
-            ? Number(profile.salary)
+    // Group expenses into their respective salary periods
+    const salaryCycles: SalaryCycle[] = salaryTransactions.map((salaryTx, idx) => {
+        const startTimestamp = new Date(salaryTx.created_at).getTime()
+        const nextSalary = salaryTransactions[idx + 1]
+        const endTimestamp = nextSalary ? new Date(nextSalary.created_at).getTime() : Infinity
+        const isActive = idx === salaryTransactions.length - 1
+
+        const cycleExpenses = safeTransactions
+            .filter((t) => {
+                if (t.type !== 'expense') return false
+                const txTime = new Date(t.created_at).getTime()
+                return txTime >= startTimestamp && txTime < endTimestamp
+            })
+            .map((t) => {
+                const cat = Array.isArray(t.categories) ? t.categories[0] : t.categories
+                return {
+                    id: t.id,
+                    amount: Number(t.amount),
+                    note: t.note,
+                    transaction_date: t.transaction_date,
+                    categoryName: cat?.name,
+                    categoryIcon: cat?.icon,
+                }
+            })
+
+        const totalDeducted = cycleExpenses.reduce((acc, exp) => acc + exp.amount, 0)
+        const salaryAmount = Number(salaryTx.amount)
+        const remainingSalary = salaryAmount - totalDeducted
+        const percentLeft = salaryAmount > 0
+            ? Math.max(0, Math.min(100, (remainingSalary / salaryAmount) * 100))
             : 0
 
-    const totalSalaryInputted = activeSalary
-    const latestSalaryDate = salaryEntry?.transaction_date || null
-    const salaryCreatedAt = salaryEntry?.created_at
-        ? new Date(salaryEntry.created_at).getTime()
-        : null
+        return {
+            id: salaryTx.id,
+            salaryAmount,
+            note: salaryTx.note || 'Allocated Salary',
+            startDate: salaryTx.transaction_date,
+            endDate: nextSalary ? nextSalary.transaction_date : null,
+            createdAt: salaryTx.created_at,
+            isActive,
+            expenses: cycleExpenses,
+            totalDeducted,
+            remainingSalary,
+            percentLeft,
+        }
+    }).reverse() // Most recent cycle first
 
-    // Deduct ONLY expenses recorded right after this active salary was inserted
-    const deductibleExpenses = safeTransactions.filter((t) => {
-        if (t.type !== 'expense') return false
-        if (!salaryCreatedAt) return false
-        return new Date(t.created_at).getTime() >= salaryCreatedAt
-    })
-
-    const totalSalaryDeducted = deductibleExpenses.reduce(
-        (acc, t) => acc + Number(t.amount),
-        0
-    )
-
-    const remainingSalary = totalSalaryInputted - totalSalaryDeducted
+    // Active Salary Card Metrics
+    const activeCycle = salaryCycles[0] || null
+    const totalSalaryInputted = activeCycle ? activeCycle.salaryAmount : (profile?.salary ? Number(profile.salary) : 0)
+    const activeSalaryDeducted = activeCycle ? activeCycle.totalDeducted : 0
+    const remainingSalary = totalSalaryInputted - activeSalaryDeducted
     const remainingPercent = totalSalaryInputted > 0
         ? Math.max(0, Math.min(100, (remainingSalary / totalSalaryInputted) * 100))
         : 0
@@ -190,7 +223,7 @@ async function DashboardContent() {
                 </div>
             </section>
 
-            {/* Salary & Automatic Expense Deduction Section */}
+            {/* Current Active Salary & Expense Deduction Section */}
             <section className="bg-card border border-card-border rounded-3xl p-6 shadow-sm">
                 <div className="flex items-center justify-between pb-4 border-b border-card-border mb-6">
                     <div>
@@ -199,7 +232,7 @@ async function DashboardContent() {
                             <span>Salary & Expense Deduction</span>
                         </h2>
                         <p className="text-xs text-muted font-medium mt-0.5">
-                            Deductions track exclusively from the date/time your active salary was set
+                            Real-time budget deductions for the active salary period
                         </p>
                     </div>
                     <InputSalaryModal />
@@ -218,8 +251,8 @@ async function DashboardContent() {
                             ₱{totalSalaryInputted.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
                         <p className="text-xs text-muted font-medium">
-                            {latestSalaryDate
-                                ? `Active baseline set on ${latestSalaryDate}`
+                            {activeCycle?.startDate
+                                ? `Active baseline set on ${activeCycle.startDate}`
                                 : 'Tap "Set Salary" to record your starting baseline'}
                         </p>
                     </div>
@@ -250,7 +283,7 @@ async function DashboardContent() {
                                 ></div>
                             </div>
                             <p className="text-xs text-muted font-medium flex justify-between">
-                                <span>Total Deducted: -₱{totalSalaryDeducted.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                <span>Total Deducted: -₱{activeSalaryDeducted.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                 <span>{totalSalaryInputted > 0 ? `${(100 - remainingPercent).toFixed(1)}% spent` : '0%'}</span>
                             </p>
                         </div>
@@ -258,7 +291,10 @@ async function DashboardContent() {
                 </div>
             </section>
 
-            {/* Transaction Feed */}
+            {/* NEW SECTION: Historical Salary Periods & Grouped Expenses */}
+            <SalaryHistorySection cycles={salaryCycles} />
+
+            {/* General Transaction Feed */}
             <section className="bg-card border border-card-border rounded-3xl p-5 sm:p-6 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-lg font-extrabold text-card-foreground">
