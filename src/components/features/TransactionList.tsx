@@ -69,22 +69,26 @@ export default function TransactionList({ transactions, categories }: Transactio
                         >
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-xl bg-input-bg border border-input-border flex items-center justify-center text-xl shadow-xs group-hover:scale-105 transition-transform">
-                                    {categoryData?.icon || (tx.type === 'income' ? '💵' : '💳')}
+                                    {categoryData?.icon || (tx.type === 'income' ? '💵' : '⚠️')}
                                 </div>
                                 <div>
                                     <p className="font-bold text-sm text-card-foreground group-hover:text-spent-violet dark:group-hover:text-spent-yellow transition-colors">
-                                        {tx.note || categoryData?.name || 'General Entry'}
+                                        {tx.note || categoryData?.name || 'Unlabeled Entry'}
                                     </p>
-                                    {/* Date and Exact Time Display */}
+
                                     <div className="flex items-center gap-2 text-xs text-muted mt-0.5 flex-wrap">
                     <span className="font-medium text-[11px]">
                       {formatManilaDateTime(tx.created_at || tx.transaction_date)}
                     </span>
-                                        {categoryData?.name && (
-                                            <>
-                                                <span>•</span>
-                                                <span>{categoryData.name}</span>
-                                            </>
+                                        <span>•</span>
+                                        {categoryData?.name ? (
+                                            <span className="font-semibold text-card-foreground">
+                        {categoryData.name}
+                      </span>
+                                        ) : (
+                                            <span className="text-[11px] font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded">
+                        ⚠️ No Category (Tap to assign)
+                      </span>
                                         )}
                                     </div>
                                 </div>

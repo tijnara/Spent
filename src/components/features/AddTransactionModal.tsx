@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { addTransaction } from '../../app/dashboard/actions'
 import { getManilaDate } from '../../lib/date'
+import CategoryCombobox from './CategoryCombobox'
+import ManageCategoriesModal from './ManageCategoriesModal'
 
 interface Category {
     id: string
@@ -14,28 +16,49 @@ interface Category {
 
 export default function AddTransactionModal({ categories }: { categories: Category[] }) {
     const [isOpen, setIsOpen] = useState(false)
+    const [isManageCategoriesOpen, setIsManageCategoriesOpen] = useState(false)
     const [type, setType] = useState<'expense' | 'income'>('expense')
-    const [selectedCategory, setSelectedCategory] = useState<string>(categories[0]?.id || '')
+
+    const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
+    const [newCategoryName, setNewCategoryName] = useState<string>('')
+    const [categoryError, setCategoryError] = useState(false)
+
     const [loading, setLoading] = useState(false)
 
-    const filteredCategories = categories.filter((c) => c.type === type)
+    function handleTypeSwitch(nextType: 'expense' | 'income') {
+        setType(nextType)
+        setSelectedCategoryId(null)
+        setNewCategoryName('')
+        setCategoryError(false)
+    }
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
+
+        if (!selectedCategoryId && !newCategoryName.trim()) {
+            setCategoryError(true)
+            return
+        }
+
+        setCategoryError(false)
         setLoading(true)
 
         const form = e.currentTarget
         const formData = new FormData(form)
         formData.set('type', type)
-        if (selectedCategory) {
-            formData.set('category_id', selectedCategory)
+
+        if (selectedCategoryId) {
+            formData.set('category_id', selectedCategoryId)
+        } else if (newCategoryName.trim()) {
+            formData.set('new_category_name', newCategoryName.trim())
         }
 
         if (!navigator.onLine) {
             const offlineItem: Record<string, string> = {
                 amount: formData.get('amount') as string,
                 type: formData.get('type') as string,
-                category_id: (formData.get('category_id') as string) || '',
+                category_id: selectedCategoryId || '',
+                new_category_name: newCategoryName.trim(),
                 note: (formData.get('note') as string) || '',
                 transaction_date: (formData.get('transaction_date') as string) || getManilaDate(),
             }
@@ -44,7 +67,7 @@ export default function AddTransactionModal({ categories }: { categories: Catego
             existingQueue.push(offlineItem)
             localStorage.setItem('spent_offline_queue', JSON.stringify(existingQueue))
 
-            alert('⚡ Saved offline! Your transaction will sync with your account when you reconnect.')
+            alert('⚡ Saved offline! Your transaction and category will sync with your account when you reconnect.')
             setLoading(false)
             setIsOpen(false)
             return
@@ -52,10 +75,12 @@ export default function AddTransactionModal({ categories }: { categories: Catego
 
         try {
             await addTransaction(formData)
+            setSelectedCategoryId(null)
+            setNewCategoryName('')
             setIsOpen(false)
-        } catch (err) {
+        } catch (err: any) {
             console.error(err)
-            alert('Failed to save transaction')
+            alert(err.message || 'Failed to save transaction')
         } finally {
             setLoading(false)
         }
@@ -63,21 +88,33 @@ export default function AddTransactionModal({ categories }: { categories: Catego
 
     return (
         <>
+            {/* Floating Action Button (FAB) */}
             <button
-                onClick={() => setIsOpen(true)}
-                className="fixed bottom-20 right-6 sm:bottom-8 sm:right-8 z-50 bg-spent-yellow text-spent-violet-dark p-4 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2 font-bold cursor-pointer border-2 border-white/20"
+                onClick={() => {
+                    setSelectedCategoryId(null)
+                    setNewCategoryName('')
+                    setCategoryError(false)
+                    setIsOpen(true)
+                }}
+                style={{ zIndex: 40 }}
+                className="fixed bottom-20 right-6 sm:bottom-8 sm:right-8 bg-spent-yellow text-spent-violet-dark p-4 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2 font-bold cursor-pointer border-2 border-white/20"
                 aria-label="Add Transaction"
             >
                 <span className="text-2xl leading-none font-black">+</span>
                 <span className="hidden sm:inline text-sm font-extrabold pr-1">Add Spent</span>
             </button>
 
+            {/* Log Transaction Modal - Fixed at z-index 50 */}
             {isOpen && (
-                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4">
+                <div
+                    style={{ zIndex: 50 }}
+                    className="fixed inset-0 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4"
+                >
                     <div className="w-full sm:max-w-md bg-card border border-card-border rounded-t-3xl sm:rounded-3xl p-6 sm:p-8 shadow-2xl animate-in slide-in-from-bottom duration-200">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-xl font-extrabold text-card-foreground">Log Transaction</h3>
                             <button
+                                type="button"
                                 onClick={() => setIsOpen(false)}
                                 className="text-muted hover:text-card-foreground font-bold text-xl px-2 py-1 cursor-pointer"
                             >
@@ -85,14 +122,11 @@ export default function AddTransactionModal({ categories }: { categories: Catego
                             </button>
                         </div>
 
+                        {/* Income / Expense Switcher */}
                         <div className="grid grid-cols-2 p-1 bg-input-bg border border-input-border rounded-xl mb-6">
                             <button
                                 type="button"
-                                onClick={() => {
-                                    setType('expense')
-                                    const firstExpense = categories.find((c) => c.type === 'expense')
-                                    if (firstExpense) setSelectedCategory(firstExpense.id)
-                                }}
+                                onClick={() => handleTypeSwitch('expense')}
                                 className={`py-2 text-sm font-bold rounded-lg transition-all cursor-pointer ${
                                     type === 'expense'
                                         ? 'bg-spent-violet text-white shadow-sm'
@@ -103,11 +137,7 @@ export default function AddTransactionModal({ categories }: { categories: Catego
                             </button>
                             <button
                                 type="button"
-                                onClick={() => {
-                                    setType('income')
-                                    const firstIncome = categories.find((c) => c.type === 'income')
-                                    if (firstIncome) setSelectedCategory(firstIncome.id)
-                                }}
+                                onClick={() => handleTypeSwitch('income')}
                                 className={`py-2 text-sm font-bold rounded-lg transition-all cursor-pointer ${
                                     type === 'income'
                                         ? 'bg-spent-yellow text-spent-violet-dark shadow-sm'
@@ -139,27 +169,42 @@ export default function AddTransactionModal({ categories }: { categories: Catego
                                 </div>
                             </div>
 
+                            {/* Dropdown Textbox with Autocomplete & Auto-Add */}
                             <div>
-                                <label className="block text-xs font-semibold uppercase tracking-wider text-muted mb-2">
-                                    Category
-                                </label>
-                                <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto">
-                                    {filteredCategories.map((cat) => (
-                                        <button
-                                            key={cat.id}
-                                            type="button"
-                                            onClick={() => setSelectedCategory(cat.id)}
-                                            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                                                selectedCategory === cat.id
-                                                    ? 'border-spent-violet bg-spent-violet/10 text-spent-violet dark:text-spent-violet-light ring-2 ring-spent-violet/30'
-                                                    : 'border-input-border bg-input-bg text-muted hover:text-card-foreground'
-                                            }`}
-                                        >
-                                            <span>{cat.icon}</span>
-                                            <span>{cat.name}</span>
-                                        </button>
-                                    ))}
+                                <div className="flex items-center justify-between mb-1.5">
+                                    <label className="block text-xs font-semibold uppercase tracking-wider text-muted">
+                                        Category
+                                    </label>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.preventDefault()
+                                            e.stopPropagation()
+                                            setIsManageCategoriesOpen(true)
+                                        }}
+                                        className="text-xs font-bold text-spent-violet hover:text-spent-violet-dark dark:text-spent-yellow transition-colors cursor-pointer"
+                                    >
+                                        ⚙️ Manage
+                                    </button>
                                 </div>
+
+                                <CategoryCombobox
+                                    categories={categories}
+                                    type={type}
+                                    selectedCategoryId={selectedCategoryId}
+                                    newCategoryName={newCategoryName}
+                                    onSelectExisting={(id) => {
+                                        setSelectedCategoryId(id)
+                                        setNewCategoryName('')
+                                        setCategoryError(false)
+                                    }}
+                                    onSetNewCategory={(name) => {
+                                        setSelectedCategoryId(null)
+                                        setNewCategoryName(name)
+                                        setCategoryError(false)
+                                    }}
+                                    hasError={categoryError}
+                                />
                             </div>
 
                             <div>
@@ -185,9 +230,6 @@ export default function AddTransactionModal({ categories }: { categories: Catego
                                     required
                                     className="w-full px-4 py-2 bg-input-bg border border-input-border rounded-xl text-sm text-input-text focus:outline-none focus:ring-2 focus:ring-spent-violet"
                                 />
-                                <span className="text-[11px] text-muted mt-1 block">
-                                    Exact entry time will be recorded automatically (Asia/Manila).
-                                </span>
                             </div>
 
                             <button
@@ -201,6 +243,13 @@ export default function AddTransactionModal({ categories }: { categories: Catego
                     </div>
                 </div>
             )}
+
+            {/* Portal-rendered Manage Categories Modal (Renders into document.body at z-index 99999) */}
+            <ManageCategoriesModal
+                categories={categories}
+                isOpen={isManageCategoriesOpen}
+                onClose={() => setIsManageCategoriesOpen(false)}
+            />
         </>
     )
 }

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { updateTransaction, deleteTransaction } from '../../app/dashboard/actions'
 import { formatManilaDateTime, getManilaDate } from '../../lib/date'
+import CategoryCombobox from './CategoryCombobox'
 
 interface Category {
     id: string
@@ -37,25 +38,47 @@ export default function EditTransactionModal({
     const [loading, setLoading] = useState(false)
     const [deleting, setDeleting] = useState(false)
 
-    if (!transaction) return null
-
-    const defaultCategory = Array.isArray(transaction.categories)
+    // Initialize category ID from transaction if present
+    const initialCatId = transaction
+        ? (Array.isArray(transaction.categories)
         ? transaction.categories[0]?.id
-        : transaction.categories?.id
+        : transaction.categories?.id) || transaction.category_id || null
+        : null
+
+    const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(initialCatId)
+    const [newCategoryName, setNewCategoryName] = useState<string>('')
+    const [categoryError, setCategoryError] = useState(false)
+
+    if (!transaction) return null
 
     async function handleUpdate(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
+
+        // Prompt user if no category is assigned
+        if (!selectedCategoryId && !newCategoryName.trim()) {
+            setCategoryError(true)
+            return
+        }
+
+        setCategoryError(false)
         setLoading(true)
 
-        const formData = new FormData(e.currentTarget)
+        const form = e.currentTarget
+        const formData = new FormData(form)
         formData.set('id', transaction!.id)
+
+        if (selectedCategoryId) {
+            formData.set('category_id', selectedCategoryId)
+        } else if (newCategoryName.trim()) {
+            formData.set('new_category_name', newCategoryName.trim())
+        }
 
         try {
             await updateTransaction(formData)
             onClose()
-        } catch (err) {
+        } catch (err: any) {
             console.error(err)
-            alert('Failed to update transaction')
+            alert(err.message || 'Failed to update transaction')
         } finally {
             setLoading(false)
         }
@@ -138,22 +161,28 @@ export default function EditTransactionModal({
                         </select>
                     </div>
 
+                    {/* Searchable / Auto-adding Category Dropdown Combobox */}
                     <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-muted mb-1">
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-muted mb-1.5">
                             Category
                         </label>
-                        <select
-                            name="category_id"
-                            defaultValue={defaultCategory || ''}
-                            className="w-full px-4 py-2.5 bg-input-bg border border-input-border rounded-xl text-sm text-input-text focus:outline-none focus:ring-2 focus:ring-spent-violet"
-                        >
-                            <option value="">No Category</option>
-                            {categories.map((cat) => (
-                                <option key={cat.id} value={cat.id}>
-                                    {cat.icon} {cat.name}
-                                </option>
-                            ))}
-                        </select>
+                        <CategoryCombobox
+                            categories={categories}
+                            type={transaction.type}
+                            selectedCategoryId={selectedCategoryId}
+                            newCategoryName={newCategoryName}
+                            onSelectExisting={(id) => {
+                                setSelectedCategoryId(id)
+                                setNewCategoryName('')
+                                setCategoryError(false)
+                            }}
+                            onSetNewCategory={(name) => {
+                                setSelectedCategoryId(null)
+                                setNewCategoryName(name)
+                                setCategoryError(false)
+                            }}
+                            hasError={categoryError}
+                        />
                     </div>
 
                     <div>
@@ -197,7 +226,7 @@ export default function EditTransactionModal({
                             disabled={loading || deleting}
                             className="w-2/3 py-3 bg-spent-yellow hover:bg-spent-yellow-dark text-spent-violet-dark font-extrabold text-sm rounded-xl transition-all shadow-md active:scale-[0.99] disabled:opacity-50 cursor-pointer"
                         >
-                            {loading ? 'Saving...' : 'Update & Save Time'}
+                            {loading ? 'Saving...' : 'Update & Save'}
                         </button>
                     </div>
                 </form>
