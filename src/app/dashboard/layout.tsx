@@ -5,7 +5,6 @@ import { createClient } from '@/lib/supabase/server'
 import { signOut } from './actions'
 
 async function UserProfileHeader() {
-    // Explicitly opt into request-time rendering for dynamic auth & timestamps
     await connection()
 
     const supabase = await createClient()
@@ -16,10 +15,17 @@ async function UserProfileHeader() {
     }
 
     return (
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
             <span className="hidden sm:inline-block text-xs font-medium text-muted">
                 {user.email}
             </span>
+            <Link
+                href="/dashboard/settings"
+                className="text-xs sm:text-sm font-semibold text-muted hover:text-card-foreground transition-colors py-1.5 px-3 rounded-lg border border-card-border hover:border-spent-violet/40 flex items-center gap-1.5"
+            >
+                <span>⚙️</span>
+                <span className="hidden sm:inline">Settings</span>
+            </Link>
             <form action={signOut}>
                 <button
                     type="submit"
@@ -39,7 +45,7 @@ export default function DashboardLayout({
 }) {
     return (
         <div className="min-h-screen bg-background flex flex-col justify-between">
-            {/* Static Header Shell */}
+            {/* Top Navbar */}
             <header className="sticky top-0 z-30 bg-card border-b border-card-border px-4 py-3 sm:px-8">
                 <div className="max-w-5xl mx-auto flex items-center justify-between">
                     <Link href="/dashboard" className="flex items-center gap-2">
@@ -51,7 +57,7 @@ export default function DashboardLayout({
                         </span>
                     </Link>
 
-                    <Suspense fallback={<div className="h-8 w-20 bg-input-bg rounded-lg animate-pulse" />}>
+                    <Suspense fallback={<div className="h-8 w-24 bg-input-bg rounded-lg animate-pulse" />}>
                         <UserProfileHeader />
                     </Suspense>
                 </div>
@@ -77,6 +83,13 @@ export default function DashboardLayout({
                 >
                     <span className="text-xl">📊</span>
                     <span>Stats</span>
+                </Link>
+                <Link
+                    href="/dashboard/settings"
+                    className="flex flex-col items-center gap-1 text-muted hover:text-card-foreground font-medium text-xs transition-colors"
+                >
+                    <span className="text-xl">⚙️</span>
+                    <span>Settings</span>
                 </Link>
             </nav>
         </div>
