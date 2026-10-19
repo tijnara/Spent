@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getManilaDate } from '@/lib/date'
 
 export async function addTransaction(formData: FormData) {
     const supabase = await createClient()
@@ -16,12 +17,13 @@ export async function addTransaction(formData: FormData) {
     const type = formData.get('type') as 'expense' | 'income'
     const category_id = (formData.get('category_id') as string) || null
     const note = (formData.get('note') as string) || ''
-    const transaction_date = (formData.get('transaction_date') as string) || new Date().toISOString().split('T')[0]
+    const transaction_date = (formData.get('transaction_date') as string) || getManilaDate()
 
     if (isNaN(amount) || amount <= 0) {
         throw new Error('Please enter a valid amount')
     }
 
+    // Explicitly timestamp exact entry time
     const { error } = await supabase.from('transactions').insert({
         user_id: user.id,
         amount,
@@ -29,6 +31,7 @@ export async function addTransaction(formData: FormData) {
         category_id,
         note,
         transaction_date,
+        created_at: new Date().toISOString(),
     })
 
     if (error) {
@@ -52,7 +55,7 @@ export async function updateTransaction(formData: FormData) {
     const type = formData.get('type') as 'expense' | 'income'
     const category_id = (formData.get('category_id') as string) || null
     const note = (formData.get('note') as string) || ''
-    const transaction_date = (formData.get('transaction_date') as string) || new Date().toISOString().split('T')[0]
+    const transaction_date = (formData.get('transaction_date') as string) || getManilaDate()
 
     if (!id) {
         throw new Error('Transaction ID is required')
@@ -62,6 +65,7 @@ export async function updateTransaction(formData: FormData) {
         throw new Error('Please enter a valid amount')
     }
 
+    // Update with fresh timestamp reflecting the exact time updated
     const { error } = await supabase
         .from('transactions')
         .update({
@@ -70,6 +74,7 @@ export async function updateTransaction(formData: FormData) {
             category_id,
             note,
             transaction_date,
+            created_at: new Date().toISOString(),
         })
         .match({ id, user_id: user.id })
 
@@ -117,20 +122,18 @@ export async function inputSalary(formData: FormData) {
     }
 
     const amount = parseFloat(formData.get('amount') as string)
-    const transaction_date = (formData.get('transaction_date') as string) || new Date().toISOString().split('T')[0]
+    const transaction_date = (formData.get('transaction_date') as string) || getManilaDate()
     const note = (formData.get('note') as string) || 'Active Salary'
 
     if (isNaN(amount) || amount <= 0) {
         throw new Error('Please enter a valid salary amount')
     }
 
-    // 1. Update user profile active salary in Supabase
     await supabase
         .from('profiles')
         .update({ salary: amount })
         .eq('id', user.id)
 
-    // 2. Fetch salary category if present
     const { data: category } = await supabase
         .from('categories')
         .select('id')
@@ -138,14 +141,13 @@ export async function inputSalary(formData: FormData) {
         .ilike('name', '%salary%')
         .maybeSingle()
 
-    // 3. Mark previous active salaries as 'Archived Salary' so history is preserved
     await supabase
         .from('transactions')
         .update({ note: 'Archived Salary' })
         .eq('user_id', user.id)
         .ilike('note', '%Active Salary%')
 
-    // 4. Insert the new active salary with the exact current timestamp
+    // Records the exact time the salary cycle starts
     const { error: insertError } = await supabase
         .from('transactions')
         .insert({
@@ -197,7 +199,6 @@ export async function clearAllUserData() {
     revalidatePath('/dashboard/settings')
 }
 
-// Explicit async export alias to resolve 'Export clearAllData doesn't exist' build errors
 export async function clearAllData() {
     return clearAllUserData()
 }

@@ -1,12 +1,14 @@
 'use client'
 
 import { useState } from 'react'
+import { formatManilaDateTime } from '../../lib/date'
 
 export interface SalaryCycleExpense {
     id: string
     amount: number
     note: string | null
     transaction_date: string
+    created_at?: string
     categoryName?: string
     categoryIcon?: string
 }
@@ -18,6 +20,7 @@ export interface SalaryCycle {
     startDate: string
     endDate: string | null
     createdAt: string
+    endCreatedAt?: string | null
     isActive: boolean
     expenses: SalaryCycleExpense[]
     totalDeducted: number
@@ -51,7 +54,7 @@ export default function SalaryHistorySection({ cycles }: SalaryHistorySectionPro
                         <span>Salary & Expense Cycle History</span>
                     </h2>
                     <p className="text-xs text-muted font-medium mt-0.5">
-                        Breakdown of expenses incurred during each salary period
+                        Breakdown with exact timestamps for each salary cycle
                     </p>
                 </div>
                 <span className="text-xs font-bold px-2.5 py-1 bg-input-bg border border-input-border rounded-xl text-muted">
@@ -95,10 +98,16 @@ export default function SalaryHistorySection({ cycles }: SalaryHistorySectionPro
                                             </span>
                                         )}
                                     </div>
-                                    <div className="text-xs text-muted font-medium flex items-center gap-1.5">
-                                        <span>📅 {cycle.startDate}</span>
+
+                                    {/* Exact Date & Time Range */}
+                                    <div className="text-xs text-muted font-medium flex items-center gap-1.5 flex-wrap">
+                                        <span>📅 {formatManilaDateTime(cycle.createdAt)}</span>
                                         <span>→</span>
-                                        <span>{cycle.endDate ? cycle.endDate : 'Present'}</span>
+                                        <span>
+                                            {cycle.endCreatedAt
+                                                ? formatManilaDateTime(cycle.endCreatedAt)
+                                                : 'Present'}
+                                        </span>
                                         <span>•</span>
                                         <span>{cycle.note}</span>
                                     </div>
@@ -147,7 +156,6 @@ export default function SalaryHistorySection({ cycles }: SalaryHistorySectionPro
                             {/* Collapsible Expense History Drawer */}
                             {isExpanded && (
                                 <div className="p-4 sm:p-5 pt-0 border-t border-card-border space-y-3 animate-in fade-in duration-150">
-                                    {/* Progress Bar for this Cycle */}
                                     <div className="pt-3 space-y-1">
                                         <div className="w-full bg-input-bg border border-input-border h-2 rounded-full overflow-hidden">
                                             <div
@@ -167,7 +175,6 @@ export default function SalaryHistorySection({ cycles }: SalaryHistorySectionPro
                                         </div>
                                     </div>
 
-                                    {/* Itemized Expenses List */}
                                     {cycle.expenses.length === 0 ? (
                                         <div className="text-center py-5 bg-card/60 rounded-xl border border-card-border">
                                             <p className="text-xs font-bold text-muted">
@@ -189,8 +196,9 @@ export default function SalaryHistorySection({ cycles }: SalaryHistorySectionPro
                                                             <p className="font-bold text-card-foreground">
                                                                 {exp.note || exp.categoryName || 'General Expense'}
                                                             </p>
-                                                            <span className="text-[11px] text-muted">
-                                                                {exp.transaction_date}
+                                                            {/* Exact Date & Time */}
+                                                            <span className="text-[11px] text-muted font-medium">
+                                                                {formatManilaDateTime(exp.created_at || exp.transaction_date)}
                                                                 {exp.categoryName ? ` • ${exp.categoryName}` : ''}
                                                             </span>
                                                         </div>

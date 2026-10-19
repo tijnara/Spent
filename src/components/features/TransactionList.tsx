@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { deleteTransaction } from '../../app/dashboard/actions'
+import { formatManilaDateTime } from '../../lib/date'
 import EditTransactionModal, { TransactionRecord } from './EditTransactionModal'
 
 interface Category {
@@ -74,8 +75,11 @@ export default function TransactionList({ transactions, categories }: Transactio
                                     <p className="font-bold text-sm text-card-foreground group-hover:text-spent-violet dark:group-hover:text-spent-yellow transition-colors">
                                         {tx.note || categoryData?.name || 'General Entry'}
                                     </p>
-                                    <div className="flex items-center gap-2 text-xs text-muted mt-0.5">
-                                        <span>{tx.transaction_date}</span>
+                                    {/* Date and Exact Time Display */}
+                                    <div className="flex items-center gap-2 text-xs text-muted mt-0.5 flex-wrap">
+                    <span className="font-medium text-[11px]">
+                      {formatManilaDateTime(tx.created_at || tx.transaction_date)}
+                    </span>
                                         {categoryData?.name && (
                                             <>
                                                 <span>•</span>
@@ -102,7 +106,6 @@ export default function TransactionList({ transactions, categories }: Transactio
                     })}
                 </span>
 
-                                {/* Inline Action Controls */}
                                 <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
                                     <button
                                         type="button"
@@ -131,7 +134,6 @@ export default function TransactionList({ transactions, categories }: Transactio
                 })}
             </div>
 
-            {/* Edit & Delete Modal */}
             <EditTransactionModal
                 transaction={editingTransaction}
                 categories={categories}

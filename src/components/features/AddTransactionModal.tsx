@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { addTransaction } from '@/app/dashboard/actions'
+import { addTransaction } from '../../app/dashboard/actions'
+import { getManilaDate } from '../../lib/date'
 
 interface Category {
     id: string
@@ -30,14 +31,13 @@ export default function AddTransactionModal({ categories }: { categories: Catego
             formData.set('category_id', selectedCategory)
         }
 
-        // OFFLINE CHECK
         if (!navigator.onLine) {
             const offlineItem: Record<string, string> = {
                 amount: formData.get('amount') as string,
                 type: formData.get('type') as string,
                 category_id: (formData.get('category_id') as string) || '',
                 note: (formData.get('note') as string) || '',
-                transaction_date: (formData.get('transaction_date') as string) || new Date().toISOString().split('T')[0],
+                transaction_date: (formData.get('transaction_date') as string) || getManilaDate(),
             }
 
             const existingQueue = JSON.parse(localStorage.getItem('spent_offline_queue') || '[]')
@@ -50,7 +50,6 @@ export default function AddTransactionModal({ categories }: { categories: Catego
             return
         }
 
-        // ONLINE FLOW
         try {
             await addTransaction(formData)
             setIsOpen(false)
@@ -64,7 +63,6 @@ export default function AddTransactionModal({ categories }: { categories: Catego
 
     return (
         <>
-            {/* Floating Action Button (FAB) */}
             <button
                 onClick={() => setIsOpen(true)}
                 className="fixed bottom-20 right-6 sm:bottom-8 sm:right-8 z-50 bg-spent-yellow text-spent-violet-dark p-4 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2 font-bold cursor-pointer border-2 border-white/20"
@@ -74,7 +72,6 @@ export default function AddTransactionModal({ categories }: { categories: Catego
                 <span className="hidden sm:inline text-sm font-extrabold pr-1">Add Spent</span>
             </button>
 
-            {/* Modal Backdrop */}
             {isOpen && (
                 <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4">
                     <div className="w-full sm:max-w-md bg-card border border-card-border rounded-t-3xl sm:rounded-3xl p-6 sm:p-8 shadow-2xl animate-in slide-in-from-bottom duration-200">
@@ -88,7 +85,6 @@ export default function AddTransactionModal({ categories }: { categories: Catego
                             </button>
                         </div>
 
-                        {/* Income / Expense Switcher */}
                         <div className="grid grid-cols-2 p-1 bg-input-bg border border-input-border rounded-xl mb-6">
                             <button
                                 type="button"
@@ -128,9 +124,9 @@ export default function AddTransactionModal({ categories }: { categories: Catego
                                     Amount
                                 </label>
                                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-muted select-none">
-                    ₱
-                  </span>
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-muted select-none">
+                                        ₱
+                                    </span>
                                     <input
                                         name="amount"
                                         type="number"
@@ -185,10 +181,13 @@ export default function AddTransactionModal({ categories }: { categories: Catego
                                 <input
                                     name="transaction_date"
                                     type="date"
-                                    defaultValue={new Date().toISOString().split('T')[0]}
+                                    defaultValue={getManilaDate()}
                                     required
                                     className="w-full px-4 py-2 bg-input-bg border border-input-border rounded-xl text-sm text-input-text focus:outline-none focus:ring-2 focus:ring-spent-violet"
                                 />
+                                <span className="text-[11px] text-muted mt-1 block">
+                                    Exact entry time will be recorded automatically (Asia/Manila).
+                                </span>
                             </div>
 
                             <button

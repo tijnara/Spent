@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { connection } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { getManilaDate, formatManilaDateTime } from '@/lib/date'
 import AddTransactionModal from '@/components/features/AddTransactionModal'
 import TransactionList from '@/components/features/TransactionList'
 import InputSalaryModal from '@/components/features/InputSalaryModal'
@@ -50,20 +51,17 @@ async function DashboardContent() {
         redirect('/login')
     }
 
-    // 1. Fetch user profile from Supabase
     const { data: profile } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .maybeSingle()
 
-    // 2. Fetch categories from Supabase
     const { data: categories } = await supabase
         .from('categories')
         .select('*')
         .order('name', { ascending: true })
 
-    // 3. Fetch transactions from Supabase
     const { data: rawTransactions } = await supabase
         .from('transactions')
         .select(`
@@ -85,9 +83,8 @@ async function DashboardContent() {
         .order('created_at', { ascending: false })
 
     const safeTransactions = (rawTransactions as unknown as TransactionRecord[]) || []
-    const todayStr = new Date().toISOString().split('T')[0]
+    const todayStr = getManilaDate()
 
-    // General Metrics (Lifetime)
     const spentToday = safeTransactions
         .filter((t) => t.type === 'expense' && t.transaction_date === todayStr)
         .reduce((acc, t) => acc + Number(t.amount), 0)
@@ -102,8 +99,7 @@ async function DashboardContent() {
 
     const netBalance = totalIncome - totalExpense
 
-    // --- SALARY CYCLES & HISTORICAL EXPENSE GROUPING ---
-    // Extract all salary records ordered chronologically (oldest to newest)
+    // --- SALARY CYCLES WITH EXACT TIMESTAMPS ---
     const salaryTransactions = safeTransactions
         .filter((t) => {
             if (t.type !== 'income') return false
@@ -112,7 +108,6 @@ async function DashboardContent() {
         })
         .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
 
-    // Group expenses into their respective salary periods
     const salaryCycles: SalaryCycle[] = salaryTransactions.map((salaryTx, idx) => {
         const startTimestamp = new Date(salaryTx.created_at).getTime()
         const nextSalary = salaryTransactions[idx + 1]
@@ -132,6 +127,7 @@ async function DashboardContent() {
                     amount: Number(t.amount),
                     note: t.note,
                     transaction_date: t.transaction_date,
+                    created_at: t.created_at,
                     categoryName: cat?.name,
                     categoryIcon: cat?.icon,
                 }
@@ -151,15 +147,15 @@ async function DashboardContent() {
             startDate: salaryTx.transaction_date,
             endDate: nextSalary ? nextSalary.transaction_date : null,
             createdAt: salaryTx.created_at,
+            endCreatedAt: nextSalary ? nextSalary.created_at : null,
             isActive,
             expenses: cycleExpenses,
             totalDeducted,
             remainingSalary,
             percentLeft,
         }
-    }).reverse() // Most recent cycle first
+    }).reverse()
 
-    // Active Salary Card Metrics
     const activeCycle = salaryCycles[0] || null
     const totalSalaryInputted = activeCycle ? activeCycle.salaryAmount : (profile?.salary ? Number(profile.salary) : 0)
     const activeSalaryDeducted = activeCycle ? activeCycle.totalDeducted : 0
@@ -181,7 +177,7 @@ async function DashboardContent() {
                         ₱{spentToday.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                     <span className="text-xs text-muted mt-2 block font-medium">
-                        Resets every midnight
+                        Resets at midnight (Manila Time)
                     </span>
                 </div>
 
@@ -239,7 +235,7 @@ async function DashboardContent() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                    {/* LEFT SIDE: Allocated Salary */}
+                    {/* LEFT SIDE: Allocated Salary with Exact Time */}
                     <div className="space-y-2">
                         <div className="flex items-center gap-2">
                             <span className="h-2 w-2 rounded-full bg-spent-violet"></span>
@@ -251,8 +247,8 @@ async function DashboardContent() {
                             ₱{totalSalaryInputted.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
                         <p className="text-xs text-muted font-medium">
-                            {activeCycle?.startDate
-                                ? `Active baseline set on ${activeCycle.startDate}`
+                            {activeCycle?.createdAt
+                                ? `Active baseline set on ${formatManilaDateTime(activeCycle.createdAt)}`
                                 : 'Tap "Set Salary" to record your starting baseline'}
                         </p>
                     </div>
@@ -291,7 +287,7 @@ async function DashboardContent() {
                 </div>
             </section>
 
-            {/* NEW SECTION: Historical Salary Periods & Grouped Expenses */}
+            {/* Historical Salary Periods & Grouped Expenses */}
             <SalaryHistorySection cycles={salaryCycles} />
 
             {/* General Transaction Feed */}
@@ -311,7 +307,6 @@ async function DashboardContent() {
                 />
             </section>
 
-            {/* Quick Add Floating Action Button & Modal */}
             <AddTransactionModal categories={categories || []} />
         </div>
     )

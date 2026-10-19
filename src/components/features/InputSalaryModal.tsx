@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { inputSalary } from '../../app/dashboard/actions'
+import { getManilaDate } from '../../lib/date'
 
 export default function InputSalaryModal() {
     const [isOpen, setIsOpen] = useState(false)
@@ -92,10 +93,13 @@ export default function InputSalaryModal() {
                                 <input
                                     name="transaction_date"
                                     type="date"
-                                    defaultValue={new Date().toISOString().split('T')[0]}
+                                    defaultValue={getManilaDate()}
                                     required
                                     className="w-full px-4 py-2 bg-input-bg border border-input-border rounded-xl text-sm text-input-text focus:outline-none focus:ring-2 focus:ring-spent-violet"
                                 />
+                                <span className="text-[11px] text-muted mt-1 block">
+                                    Exact timestamp will mark the start of this cycle.
+                                </span>
                             </div>
 
                             <button
