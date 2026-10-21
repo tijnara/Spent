@@ -1,25 +1,56 @@
 'use server'
 
-import { headers } from 'next/headers'
-import { revalidatePath } from 'next/cache'
+import { createServerClient } from '@supabase/ssr'
+import { cookies, headers } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 
-async function getOrigin() {
-    const headersList = await headers()
-    const origin = headersList.get('origin')
-    if (origin) return origin
+async function getSupabaseServerClient() {
+    const cookieStore = await cookies()
+    return createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+            cookies: {
+                getAll() {
+                    return cookieStore.getAll()
+                },
+                setAll(cookiesToSet) {
+                    try {
+                        cookiesToSet.forEach(({ name, value, options }) =>
+                            cookieStore.set(name, value, options)
+                        )
+                    } catch {
+                        // Handled when called from Server Components
+                    }
+                },
+            },
+        }
+    )
+}
 
-    const host = headersList.get('x-forwarded-host') || headersList.get('host')
-    const protocol = headersList.get('x-forwarded-proto') || 'https'
-    return host ? `${protocol}://${host}` : (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000')
+async function getSiteUrl() {
+    const headerList = await headers()
+    const host = headerList.get('x-forwarded-host') || headerList.get('host')
+    const proto = headerList.get('x-forwarded-proto') || (process.env.NODE_ENV === 'production' ? 'https' : 'http')
+
+    if (host && !host.includes('localhost')) {
+        return `${proto}://${host}`
+    }
+
+    return process.env.NODE_ENV === 'production'
+        ? 'https://spent-wave.vercel.app'
+        : 'http://localhost:3000'
 }
 
 export async function login(formData: FormData) {
-    const supabase = await createClient()
-
     const email = formData.get('email') as string
     const password = formData.get('password') as string
+
+    if (!email || !password) {
+        redirect('/login?error=Please+provide+both+email+and+password')
+    }
+
+    const supabase = await getSupabaseServerClient()
 
     const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -30,26 +61,29 @@ export async function login(formData: FormData) {
         redirect(`/login?error=${encodeURIComponent(error.message)}`)
     }
 
-    revalidatePath('/dashboard')
     redirect('/dashboard')
 }
 
 export async function signup(formData: FormData) {
-    const supabase = await createClient()
-    const origin = await getOrigin()
-
     const email = formData.get('email') as string
     const password = formData.get('password') as string
+    const firstName = (formData.get('firstName') as string)?.trim() || null
 
-    if (password.length < 8) {
-        redirect('/signup?error=Password must be at least 8 characters long.')
+    if (!email || !password) {
+        redirect('/signup?error=Please+provide+both+email+and+password')
     }
 
-    const { error } = await supabase.auth.signUp({
+    const supabase = await getSupabaseServerClient()
+    const siteUrl = await getSiteUrl()
+
+    const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-            emailRedirectTo: `${origin}/auth/callback`,
+            emailRedirectTo: `${siteUrl}/auth/callback?next=/onboarding`,
+            data: {
+                first_name: firstName,
+            },
         },
     })
 
@@ -57,5 +91,41 @@ export async function signup(formData: FormData) {
         redirect(`/signup?error=${encodeURIComponent(error.message)}`)
     }
 
-    redirect('/login?message=Account created! Check your email to verify your account before logging in.')
+    // When "Confirm email" is disabled in Supabase, a session is created immediately
+    if (data.session) {
+        redirect('/onboarding')
+    }
+
+    // When email confirmation is enabled, guide the user to verify their email
+    if (data.user && !data.session) {
+        redirect('/signup?message=We+sent+a+confirmation+link+to+your+email.+Click+it+to+activate+your+account.')
+    }
+
+    redirect('/onboarding')
+}
+
+export async function signInWithGoogle() {
+    const supabase = await getSupabaseServerClient()
+    const siteUrl = await getSiteUrl()
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+            redirectTo: `${siteUrl}/auth/callback?next=/onboarding`,
+        },
+    })
+
+    if (error) {
+        redirect(`/signup?error=${encodeURIComponent(error.message)}`)
+    }
+
+    if (data.url) {
+        redirect(data.url)
+    }
+}
+
+export async function logout() {
+    const supabase = await getSupabaseServerClient()
+    await supabase.auth.signOut()
+    redirect('/login')
 }

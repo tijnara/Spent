@@ -54,7 +54,7 @@ export default function LandingPage() {
         {/* Hero Section */}
         <main className="flex-1 flex flex-col items-center justify-center px-4 sm:px-8 pt-16 pb-16 sm:pt-24 sm:pb-24 relative bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-spent-violet/20 via-transparent to-transparent">
           <div className="max-w-3xl mx-auto text-center space-y-8 relative z-10">
-            {/* Status Pill Badge */}
+            {/* Status Pill Badge: Green Dot Locked to Left */}
             <div className="flex justify-center mt-2 sm:mt-4">
               <div
                   style={{
@@ -111,7 +111,7 @@ export default function LandingPage() {
               Track daily expenses against your active paycheck in Philippine Standard Time. See exactly what remains before your next payday hits.
             </p>
 
-            {/* Action CTAs: Both direct prospective users to the account creation route */}
+            {/* Action CTAs */}
             <div className="pt-2 pb-1 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-5">
               <Link
                   href="/signup"

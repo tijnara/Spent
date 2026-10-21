@@ -15,7 +15,7 @@ export async function middleware(request: NextRequest) {
                     return request.cookies.getAll()
                 },
                 setAll(cookiesToSet) {
-                    cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+                    cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
                     supabaseResponse = NextResponse.next({
                         request,
                     })
@@ -27,12 +27,25 @@ export async function middleware(request: NextRequest) {
         }
     )
 
+    // Securely fetch the user session from Supabase
     const { data: { user } } = await supabase.auth.getUser()
+    const { pathname } = request.nextUrl
 
-    // Protect the dashboard: redirect unauthenticated users to the landing page
-    if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
+    // 1. SMART LANDING PAGE:
+    // If the user IS logged in and visits the landing page, login, or signup,
+    // skip the marketing/auth screens and send them straight to the app.
+    if (user && (pathname === '/' || pathname === '/login' || pathname === '/signup')) {
         const url = request.nextUrl.clone()
-        url.pathname = '/'
+        url.pathname = '/dashboard'
+        return NextResponse.redirect(url)
+    }
+
+    // 2. PROTECT INTERNAL ROUTES:
+    // If the user is NOT logged in and tries to access the dashboard or onboarding,
+    // kick them back to the login page.
+    if (!user && (pathname.startsWith('/dashboard') || pathname.startsWith('/onboarding'))) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/login'
         return NextResponse.redirect(url)
     }
 
@@ -41,6 +54,13 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
     matcher: [
+        /*
+         * Match all request paths except for the ones starting with:
+         * - _next/static (static files)
+         * - _next/image (image optimization files)
+         * - favicon.ico (favicon file)
+         * - any files with extensions (e.g. .svg, .png, .jpg)
+         */
         '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
     ],
 }
