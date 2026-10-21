@@ -103,7 +103,7 @@ export default function PwaInstallGuide() {
                             </div>
                             <h3 className="font-extrabold text-sm text-white">Open in Chrome</h3>
                             <p className="text-xs text-zinc-400 leading-relaxed">
-                                Open Google Chrome on Android and navigate to <span className="text-[#FACC15] font-semibold">spent.ph</span>.
+                                Open Google Chrome on Android and navigate to <span className="text-[#FACC15] font-semibold">spent-wave.vercel.app</span>.
                             </p>
                             <div className="pt-2 text-xs text-zinc-500 font-mono">
                                 🌐 Mobile Chrome
