@@ -169,9 +169,14 @@ export default function LandingPage() {
           </div>
         </main>
 
-        {/* Clean Obsidian Footer */}
-        <footer className="w-full border-t border-white/[0.08] py-8 text-center text-xs text-zinc-500 bg-[#0B0813]">
-          <p>© 2026 Spent. Built for every centavo.</p>
+        {/* Footer with Creator Attribution */}
+        <footer className="w-full border-t border-white/[0.08] py-8 text-xs text-zinc-500 bg-[#0B0813]">
+          <div className="max-w-6xl mx-auto px-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+            <p>© 2026 Spent. Built for every centavo.</p>
+            <p className="text-zinc-400">
+              by <span className="text-[#FACC15] font-bold">tijnara</span>
+            </p>
+          </div>
         </footer>
       </div>
   )
