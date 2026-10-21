@@ -84,13 +84,11 @@ export default function BentoGrid() {
                 </p>
             </div>
 
-            {/* Asymmetric Bento Grid (Row 1: 2+1, Row 2: 1+2) */}
+            {/* Asymmetric Bento Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
 
-                {/* -------------------------------------------------------------
-                    CARD 1: Salary Cycle Grouping (Span 2)
-                ------------------------------------------------------------- */}
-                <div className="lg:col-span-2 rounded-3xl bg-[#1A1433] border border-white/[0.08] p-6 sm:p-8 flex flex-col justify-between shadow-lg hover:border-white/[0.16] transition-all">
+                {/* CARD 1: Salary Cycle Grouping (Span 2) */}
+                <div className="lg:col-span-2 rounded-3xl bg-[#1A1433] border border-white/[0.08] p-6 sm:p-8 flex flex-col justify-between shadow-lg hover:border-white/[0.16] transition-colors contain-card min-h-[380px]">
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
                             <span className="text-[11px] font-black uppercase tracking-wider text-[#FACC15] bg-[#FACC15]/10 border border-[#FACC15]/20 px-3 py-1 rounded-full">
@@ -116,7 +114,7 @@ export default function BentoGrid() {
                                     <span className="flex h-2 w-2 rounded-full bg-[#34D399] animate-pulse" />
                                     <span className="font-extrabold text-white">Active Cutoff: Oct 16 – Oct 31</span>
                                 </div>
-                                <span className="font-black text-[#34D399] bg-[#34D399]/10 px-2.5 py-0.5 rounded-full text-[11px] tabular-nums">
+                                <span className="font-black text-[#34D399] bg-[#34D399]/10 px-2.5 py-0.5 rounded-full text-[11px] tabular-currency">
                                     63.6% Left
                                 </span>
                             </div>
@@ -124,16 +122,16 @@ export default function BentoGrid() {
                             <div className="flex items-baseline justify-between text-xs pt-1">
                                 <div>
                                     <span className="text-[10px] text-zinc-400 font-bold block uppercase tracking-wider">Remaining</span>
-                                    <span className="text-xl sm:text-2xl font-black text-white tabular-nums">₱11,450.00</span>
+                                    <span className="text-xl sm:text-2xl font-black text-white tabular-currency">₱11,450.00</span>
                                 </div>
                                 <div className="text-right">
                                     <span className="text-[10px] text-zinc-400 font-bold block uppercase tracking-wider">Cutoff Base</span>
-                                    <span className="text-sm font-bold text-zinc-400 tabular-nums">₱18,000.00</span>
+                                    <span className="text-sm font-bold text-zinc-400 tabular-currency">₱18,000.00</span>
                                 </div>
                             </div>
 
                             <div className="w-full bg-white/[0.08] h-2 rounded-full overflow-hidden">
-                                <div className="h-full bg-[#FACC15] rounded-full transition-all" style={{ width: '63.6%' }} />
+                                <div className="h-full bg-[#FACC15] rounded-full transition-[width] duration-300 ease-out" style={{ width: '63.6%' }} />
                             </div>
                         </div>
 
@@ -142,15 +140,13 @@ export default function BentoGrid() {
                                 <span className="text-sm">📁</span>
                                 <span className="font-semibold text-zinc-300 whitespace-nowrap">Archived: Oct 01 – Oct 15</span>
                             </div>
-                            <span className="font-bold tabular-nums whitespace-nowrap text-zinc-300">₱18,000.00 (Closed • 18.2% saved)</span>
+                            <span className="font-bold tabular-currency whitespace-nowrap text-zinc-300">₱18,000.00 (Closed • 18.2% saved)</span>
                         </div>
                     </div>
                 </div>
 
-                {/* -------------------------------------------------------------
-                    CARD 2: Midnight Manila Reset (Span 1)
-                ------------------------------------------------------------- */}
-                <div className="lg:col-span-1 rounded-3xl bg-[#1A1433] border border-white/[0.08] p-6 sm:p-7 flex flex-col justify-between shadow-lg hover:border-white/[0.16] transition-all">
+                {/* CARD 2: Midnight Manila Reset (Span 1) */}
+                <div className="lg:col-span-1 rounded-3xl bg-[#1A1433] border border-white/[0.08] p-6 sm:p-7 flex flex-col justify-between shadow-lg hover:border-white/[0.16] transition-colors contain-card min-h-[380px]">
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
                             <span className="text-[11px] font-black uppercase tracking-wider text-[#34D399] bg-[#34D399]/10 border border-[#34D399]/20 px-3 py-1 rounded-full">
@@ -172,22 +168,20 @@ export default function BentoGrid() {
                             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
                                 Spent Today
                             </span>
-                            <p className="text-3xl font-black text-white tabular-nums mt-0.5">
+                            <p className="text-3xl font-black text-white tabular-currency mt-0.5">
                                 ₱485.00
                             </p>
                         </div>
 
                         <div className="border-t border-white/[0.08] pt-3 flex items-center justify-between text-xs font-semibold text-zinc-400">
                             <span>Resets In:</span>
-                            <span className="text-[#FACC15] font-black tabular-nums">{timeToMidnight}</span>
+                            <span className="text-[#FACC15] font-black tabular-currency">{timeToMidnight}</span>
                         </div>
                     </div>
                 </div>
 
-                {/* -------------------------------------------------------------
-                    CARD 3: Offline-First Logging (Span 1)
-                ------------------------------------------------------------- */}
-                <div className="lg:col-span-1 rounded-3xl bg-[#1A1433] border border-white/[0.08] p-6 sm:p-7 flex flex-col justify-between shadow-lg hover:border-white/[0.16] transition-all">
+                {/* CARD 3: Offline-First Logging (Span 1) */}
+                <div className="lg:col-span-1 rounded-3xl bg-[#1A1433] border border-white/[0.08] p-6 sm:p-7 flex flex-col justify-between shadow-lg hover:border-white/[0.16] transition-colors contain-card min-h-[420px]">
                     <div className="space-y-3">
                         <div className="flex items-center justify-between gap-2">
                             <span className="text-[11px] font-black uppercase tracking-wider text-blue-400 bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-full">
@@ -197,7 +191,7 @@ export default function BentoGrid() {
                             <button
                                 type="button"
                                 onClick={toggleOfflineSwitch}
-                                className={`text-[11px] font-bold px-3 py-1 rounded-full border transition-all cursor-pointer flex items-center gap-1.5 shadow-xs ${
+                                className={`text-[11px] font-bold px-3 py-1 rounded-full border transition-all cursor-pointer flex items-center gap-1.5 shadow-xs gpu-layer ${
                                     isOfflineMode
                                         ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
                                         : 'bg-[#34D399]/15 text-[#34D399] border-[#34D399]/30'
@@ -232,7 +226,8 @@ export default function BentoGrid() {
                             </span>
                         </div>
 
-                        <div className="min-h-[64px] flex flex-col justify-center space-y-1.5">
+                        {/* Preserved height tray: No layout shifts when queues fill */}
+                        <div className="min-h-[64px] flex flex-col justify-center space-y-1.5 contain-feed">
                             {offlineQueue.length === 0 ? (
                                 <div className="text-center py-2">
                                     <p className="text-[11px] font-medium text-zinc-500">
@@ -243,7 +238,7 @@ export default function BentoGrid() {
                                 offlineQueue.map((item, idx) => (
                                     <div
                                         key={idx}
-                                        className="flex items-center justify-between bg-[#1A1433] border border-white/[0.08] px-2.5 py-1.5 rounded-xl text-xs"
+                                        className="flex items-center justify-between bg-[#1A1433] border border-white/[0.08] px-2.5 py-1.5 rounded-xl text-xs gpu-layer animate-in fade-in slide-in-from-bottom-1 duration-150"
                                     >
                                         <span className="font-semibold text-zinc-200 text-[11px] truncate">{item}</span>
                                         <span className="text-[10px] font-bold text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded">
@@ -259,17 +254,17 @@ export default function BentoGrid() {
                         <button
                             type="button"
                             onClick={() => logOfflineExpense('MRT 3 Ayala → Cubao (₱28)')}
-                            className="w-full py-2.5 px-4 bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] rounded-xl text-xs font-bold text-white transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 shadow-xs"
+                            className="w-full py-2.5 px-4 bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] rounded-xl text-xs font-bold text-white transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 shadow-xs gpu-layer"
                         >
                             <span>🚇</span>
-                            <span className="tabular-nums">+ Log ₱28 MRT Fare</span>
+                            <span className="tabular-currency">+ Log ₱28 MRT Fare</span>
                         </button>
 
                         {isOfflineMode && offlineQueue.length > 0 && (
                             <button
                                 type="button"
                                 onClick={toggleOfflineSwitch}
-                                className="w-full py-2 px-3 bg-[#34D399]/20 hover:bg-[#34D399]/30 border border-[#34D399]/40 text-[#34D399] rounded-xl text-[11px] font-extrabold transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                                className="w-full py-2 px-3 bg-[#34D399]/20 hover:bg-[#34D399]/30 border border-[#34D399]/40 text-[#34D399] rounded-xl text-[11px] font-extrabold transition-all cursor-pointer flex items-center justify-center gap-1.5 gpu-layer"
                             >
                                 <span>☁️</span>
                                 <span>Exit Tunnel & Sync Queue Now</span>
@@ -278,10 +273,8 @@ export default function BentoGrid() {
                     </div>
                 </div>
 
-                {/* -------------------------------------------------------------
-                    CARD 4: Zero-Friction Categorization (Span 2)
-                ------------------------------------------------------------- */}
-                <div className="lg:col-span-2 rounded-3xl bg-[#1A1433] border border-white/[0.08] p-6 sm:p-8 flex flex-col justify-between shadow-lg hover:border-white/[0.16] transition-all">
+                {/* CARD 4: Zero-Friction Categorization (Span 2) */}
+                <div className="lg:col-span-2 rounded-3xl bg-[#1A1433] border border-white/[0.08] p-6 sm:p-8 flex flex-col justify-between shadow-lg hover:border-white/[0.16] transition-colors contain-card min-h-[420px]">
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
                             <span className="text-[11px] font-black uppercase tracking-wider text-rose-400 bg-rose-500/10 border border-rose-500/20 px-3 py-1 rounded-full">
@@ -316,7 +309,7 @@ export default function BentoGrid() {
                                 onBlur={() => setTimeout(() => setIsFocused(false), 200)}
                                 onChange={(e) => setCategoryQuery(e.target.value)}
                                 placeholder="Search or type a new tag (e.g. Milk Tea, Laundry)..."
-                                className="w-full bg-[#0B0813]/70 border border-white/[0.08] rounded-2xl px-4 py-3 text-xs sm:text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#FACC15]/80 transition-all"
+                                className="w-full bg-[#0B0813]/70 border border-white/[0.08] rounded-2xl px-4 py-3 text-xs sm:text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#FACC15]/80 transition-colors"
                             />
                             {categoryQuery && (
                                 <button
@@ -329,8 +322,9 @@ export default function BentoGrid() {
                             )}
                         </div>
 
+                        {/* GPU-accelerated dropdown menu strictly bound to transform & opacity */}
                         {(isFocused || categoryQuery) && (
-                            <div className="bg-[#1A1433] border border-white/[0.12] rounded-2xl p-2 shadow-2xl space-y-1 max-h-44 overflow-y-auto animate-in fade-in duration-150">
+                            <div className="absolute left-0 right-0 top-full mt-2 z-20 bg-[#1A1433] border border-white/[0.12] rounded-2xl p-2 shadow-2xl space-y-1 max-h-44 overflow-y-auto gpu-layer transition-all duration-200 ease-out translate-y-0 opacity-100">
                                 {filteredCategories.map((cat) => (
                                     <button
                                         key={cat.name}

@@ -68,7 +68,7 @@ export default function HeroSandbox() {
     }
 
     return (
-        <div id="demo" className="w-full max-w-xl mx-auto scroll-mt-20 sm:scroll-mt-24">
+        <div id="demo" className="w-full max-w-xl mx-auto scroll-mt-20 sm:scroll-mt-24 contain-card">
             {/* Elevated Slate-Violet Surface Container */}
             <div className="relative rounded-3xl p-[1px] bg-gradient-to-b from-white/[0.12] via-white/[0.04] to-transparent shadow-2xl">
                 <div className="bg-[#1A1433] border border-white/[0.08] rounded-[23px] p-6 sm:p-8 space-y-7 backdrop-blur-xl">
@@ -80,7 +80,7 @@ export default function HeroSandbox() {
                                 Active 15/30 Cutoff Period
                             </span>
                         </div>
-                        <span className="text-[10px] font-bold text-zinc-400 bg-white/[0.04] border border-white/[0.08] px-2.5 py-1 rounded-lg tabular-nums">
+                        <span className="text-[10px] font-bold text-zinc-400 bg-white/[0.04] border border-white/[0.08] px-2.5 py-1 rounded-lg tabular-currency">
                             Asia/Manila (UTC+8)
                         </span>
                     </div>
@@ -91,7 +91,7 @@ export default function HeroSandbox() {
                             <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider block">
                                 Allocated Salary
                             </span>
-                            <p className="text-2xl sm:text-3xl font-black text-white tabular-nums tracking-tight mt-1">
+                            <p className="text-2xl sm:text-3xl font-black text-white tabular-currency tracking-tight mt-1">
                                 ₱{salary.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
                             </p>
                         </div>
@@ -101,7 +101,7 @@ export default function HeroSandbox() {
                                 Remaining Budget
                             </span>
                             <p
-                                className={`text-2xl sm:text-3xl font-black tabular-nums tracking-tight mt-1 ${
+                                className={`text-2xl sm:text-3xl font-black tabular-currency tracking-tight mt-1 ${
                                     remainingSalary >= 0 ? 'text-[#34D399]' : 'text-[#F87171]'
                                 }`}
                             >
@@ -110,19 +110,19 @@ export default function HeroSandbox() {
                         </div>
                     </div>
 
-                    {/* Dynamic Progress Bar */}
+                    {/* GPU-Accelerated Runway Progress Bar */}
                     <div className="space-y-2 py-1">
                         <div className="w-full bg-[#0B0813] h-3 rounded-full overflow-hidden p-0.5 border border-white/[0.04]">
                             <div
-                                className={`h-full rounded-full transition-all duration-500 ease-out ${
+                                className={`h-full rounded-full transition-[width] duration-500 ease-out gpu-layer ${
                                     remainingPercent > 25 ? 'bg-[#FACC15]' : 'bg-[#F87171]'
                                 }`}
                                 style={{ width: `${remainingPercent}%` }}
                             />
                         </div>
                         <div className="flex justify-between items-center text-xs font-bold text-zinc-400 px-0.5 pt-0.5">
-                            <span className="tabular-nums">{remainingPercent.toFixed(1)}% runway left</span>
-                            <span className="text-[#F87171] font-semibold tabular-nums">-₱{totalExpense.toLocaleString('en-PH')} spent</span>
+                            <span className="tabular-currency">{remainingPercent.toFixed(1)}% runway left</span>
+                            <span className="text-[#F87171] font-semibold tabular-currency">-₱{totalExpense.toLocaleString('en-PH')} spent</span>
                         </div>
                     </div>
 
@@ -135,47 +135,47 @@ export default function HeroSandbox() {
                             <button
                                 type="button"
                                 onClick={() => addSampleTransaction('Jeepney Fare', 45, 'expense', '🚐')}
-                                className="py-3 px-3 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-bold text-white flex flex-col items-center gap-1.5 active:scale-95 transition-all cursor-pointer shadow-xs"
+                                className="py-3 px-3 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-bold text-white flex flex-col items-center gap-1.5 active:scale-95 transition-transform duration-150 cursor-pointer shadow-xs gpu-layer"
                             >
                                 <span className="text-lg">🚐</span>
-                                <span className="text-xs font-extrabold tabular-nums">-₱45 Jeep</span>
+                                <span className="text-xs font-extrabold tabular-currency">-₱45 Jeep</span>
                             </button>
 
                             <button
                                 type="button"
                                 onClick={() => addSampleTransaction('Iced Coffee', 140, 'expense', '☕')}
-                                className="py-3 px-3 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-bold text-white flex flex-col items-center gap-1.5 active:scale-95 transition-all cursor-pointer shadow-xs"
+                                className="py-3 px-3 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-bold text-white flex flex-col items-center gap-1.5 active:scale-95 transition-transform duration-150 cursor-pointer shadow-xs gpu-layer"
                             >
                                 <span className="text-lg">☕</span>
-                                <span className="text-xs font-extrabold tabular-nums">-₱140 Coffee</span>
+                                <span className="text-xs font-extrabold tabular-currency">-₱140 Coffee</span>
                             </button>
 
                             <button
                                 type="button"
                                 onClick={() => addSampleTransaction('Carinderia Lunch', 120, 'expense', '🍲')}
-                                className="py-3 px-3 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-bold text-white flex flex-col items-center gap-1.5 active:scale-95 transition-all cursor-pointer shadow-xs"
+                                className="py-3 px-3 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-bold text-white flex flex-col items-center gap-1.5 active:scale-95 transition-transform duration-150 cursor-pointer shadow-xs gpu-layer"
                             >
                                 <span className="text-lg">🍲</span>
-                                <span className="text-xs font-extrabold tabular-nums">-₱120 Lunch</span>
+                                <span className="text-xs font-extrabold tabular-currency">-₱120 Lunch</span>
                             </button>
 
                             <button
                                 type="button"
                                 onClick={() => addSampleTransaction('Side Gig / GCash', 500, 'income', '💸')}
-                                className="py-3 px-3 rounded-2xl bg-[#34D399]/10 hover:bg-[#34D399]/20 border border-[#34D399]/30 text-xs font-bold text-[#34D399] flex flex-col items-center gap-1.5 active:scale-95 transition-all cursor-pointer shadow-xs"
+                                className="py-3 px-3 rounded-2xl bg-[#34D399]/10 hover:bg-[#34D399]/20 border border-[#34D399]/30 text-xs font-bold text-[#34D399] flex flex-col items-center gap-1.5 active:scale-95 transition-transform duration-150 cursor-pointer shadow-xs gpu-layer"
                             >
                                 <span className="text-lg">💸</span>
-                                <span className="text-xs font-extrabold tabular-nums">+₱500 Side gig</span>
+                                <span className="text-xs font-extrabold tabular-currency">+₱500 Side gig</span>
                             </button>
                         </div>
                     </div>
 
-                    {/* Scrollable Feed Ledger */}
+                    {/* Scrollable Feed Ledger with strict layout containment */}
                     <div className="space-y-3 pt-3 border-t border-white/[0.08]">
                         <div className="flex justify-between items-center text-xs pb-1">
                             <div className="flex items-center gap-2">
                                 <span className="font-extrabold text-white">Feed Simulation</span>
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white/[0.04] text-zinc-400 border border-white/[0.08] tabular-nums">
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white/[0.04] text-zinc-400 border border-white/[0.08] tabular-currency">
                                     {transactions.length} entries
                                 </span>
                             </div>
@@ -188,15 +188,15 @@ export default function HeroSandbox() {
                             </button>
                         </div>
 
-                        {/* Uncapped scroll container */}
-                        <div className="max-h-48 overflow-y-auto space-y-2 pr-1 divide-y divide-white/[0.06] scrollbar-thin">
+                        {/* Contained list: items animate solely with translateY and opacity */}
+                        <div className="max-h-48 overflow-y-auto space-y-2 pr-1 divide-y divide-white/[0.06] scrollbar-thin contain-feed">
                             {transactions.map((item) => (
                                 <div
                                     key={item.id}
-                                    className={`pt-2.5 pb-1 flex items-center justify-between text-xs transition-colors rounded-xl px-2 ${
+                                    className={`pt-2.5 pb-1 flex items-center justify-between text-xs rounded-xl px-2 gpu-layer ${
                                         item.isNew
-                                            ? 'bg-white/[0.04] animate-in fade-in slide-in-from-top-1 duration-200'
-                                            : ''
+                                            ? 'bg-white/[0.04] transition-all duration-200 translate-y-0 opacity-100'
+                                            : 'opacity-90'
                                     }`}
                                 >
                                     <div className="flex items-center gap-3 min-w-0">
@@ -205,14 +205,14 @@ export default function HeroSandbox() {
                                             <p className="font-bold text-zinc-100 leading-tight truncate">
                                                 {item.title}
                                             </p>
-                                            <span className="text-[10px] text-zinc-500 block leading-none mt-1 tabular-nums">
+                                            <span className="text-[10px] text-zinc-500 block leading-none mt-1 tabular-currency">
                                                 {item.time}
                                             </span>
                                         </div>
                                     </div>
 
                                     <span
-                                        className={`font-black tabular-nums whitespace-nowrap shrink-0 pl-3 ${
+                                        className={`font-black tabular-currency whitespace-nowrap shrink-0 pl-3 ${
                                             item.type === 'income' ? 'text-[#34D399]' : 'text-zinc-200'
                                         }`}
                                     >

@@ -2,30 +2,24 @@
 
 :root {
   /* --- Visual Design System Tokens --- */
-  /* Background: Deep Obsidian Violet */
   --spent-obsidian: #0B0813;
   --spent-obsidian-subtle: #120E24;
 
-  /* Surface Cards: Elevated Slate-Violet */
   --spent-surface: #1A1433;
   --spent-surface-border: rgba(255, 255, 255, 0.08);
 
-  /* Primary Accent: High-Voltage Amber Yellow */
   --spent-yellow: #FACC15;
   --spent-yellow-hover: #EAB308;
   --spent-yellow-light: #FEF08A;
   --spent-yellow-dark: #CA8A04;
 
-  /* Status Accents: Clean Emerald & Soft Red */
   --spent-emerald: #34D399;
   --spent-rose: #F87171;
 
-  /* Brand Violet */
   --spent-violet: #6b46c1;
   --spent-violet-light: #9f7aea;
   --spent-violet-dark: #0B0813;
 
-  /* Semantic Theme Tokens */
   --background: var(--spent-obsidian);
   --foreground: #F4F4F5;
 
@@ -83,4 +77,20 @@ body {
 .tabular-currency {
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.015em;
+}
+
+/* CSS Containment: Prevents internal mutations from triggering parent page reflows */
+.contain-card {
+  contain: content;
+}
+
+.contain-feed {
+  contain: layout paint;
+}
+
+/* Hardware-accelerated compositor layer for 60 FPS transitions */
+.gpu-layer {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform, opacity;
 }
