@@ -1,51 +1,46 @@
 @import "tailwindcss";
 
 :root {
-  /* Spent Brand Colors */
-  --spent-violet-light: #9f7aea;
+  /* --- Visual Design System Tokens --- */
+  /* Background: Deep Obsidian Violet */
+  --spent-obsidian: #0B0813;
+  --spent-obsidian-subtle: #120E24;
+
+  /* Surface Cards: Elevated Slate-Violet */
+  --spent-surface: #1A1433;
+  --spent-surface-border: rgba(255, 255, 255, 0.08);
+
+  /* Primary Accent: High-Voltage Amber Yellow */
+  --spent-yellow: #FACC15;
+  --spent-yellow-hover: #EAB308;
+  --spent-yellow-light: #FEF08A;
+  --spent-yellow-dark: #CA8A04;
+
+  /* Status Accents: Clean Emerald & Soft Red */
+  --spent-emerald: #34D399;
+  --spent-rose: #F87171;
+
+  /* Brand Violet */
   --spent-violet: #6b46c1;
-  --spent-violet-dark: #44337a;
-  --spent-violet-bg: #f3e8ff;
+  --spent-violet-light: #9f7aea;
+  --spent-violet-dark: #0B0813;
 
-  --spent-yellow-light: #fef08a;
-  --spent-yellow: #ecc94b;
-  --spent-yellow-dark: #d69e2e;
+  /* Semantic Theme Tokens */
+  --background: var(--spent-obsidian);
+  --foreground: #F4F4F5;
 
-  /* --- LIGHT MODE SEMANTIC COLORS (DEFAULT) --- */
-  --background: var(--spent-violet-bg);
-  --foreground: #111827; /* gray-900 */
+  --card: var(--spent-surface);
+  --card-foreground: #FFFFFF;
+  --card-border: var(--spent-surface-border);
 
-  --card: #ffffff;
-  --card-foreground: #111827;
-  --card-border: #f3f4f6; /* gray-100 */
+  --input-bg: rgba(255, 255, 255, 0.04);
+  --input-border: rgba(255, 255, 255, 0.08);
+  --input-text: #FFFFFF;
 
-  --input-bg: #f9fafb; /* gray-50 */
-  --input-border: #e5e7eb; /* gray-200 */
-  --input-text: #111827;
-
-  --muted-text: #6b7280; /* gray-500 */
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* --- DARK MODE SEMANTIC COLORS --- */
-    --background: #1a103c; /* Deep brand-aligned dark background */
-    --foreground: #f3e8ff;
-
-    --card: #111827; /* gray-900 */
-    --card-foreground: #f9fafb; /* gray-50 */
-    --card-border: #1f2937; /* gray-800 */
-
-    --input-bg: #1f2937; /* gray-800 */
-    --input-border: #374151; /* gray-700 */
-    --input-text: #f9fafb;
-
-    --muted-text: #9ca3af; /* gray-400 */
-  }
+  --muted-text: #A1A1AA;
 }
 
 @theme inline {
-  /* Map CSS variables to Tailwind classes */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
@@ -59,18 +54,33 @@
 
   --color-muted: var(--muted-text);
 
-  /* Expose Brand Colors */
+  --color-spent-obsidian: var(--spent-obsidian);
+  --color-spent-obsidian-subtle: var(--spent-obsidian-subtle);
+  --color-spent-surface: var(--spent-surface);
+  --color-spent-surface-border: var(--spent-surface-border);
+
+  --color-spent-yellow: var(--spent-yellow);
+  --color-spent-yellow-hover: var(--spent-yellow-hover);
+  --color-spent-yellow-light: var(--spent-yellow-light);
+  --color-spent-yellow-dark: var(--spent-yellow-dark);
+
+  --color-spent-emerald: var(--spent-emerald);
+  --color-spent-rose: var(--spent-rose);
+
   --color-spent-violet: var(--spent-violet);
   --color-spent-violet-light: var(--spent-violet-light);
   --color-spent-violet-dark: var(--spent-violet-dark);
-  --color-spent-violet-bg: var(--spent-violet-bg);
-  --color-spent-yellow: var(--spent-yellow);
-  --color-spent-yellow-light: var(--spent-yellow-light);
-  --color-spent-yellow-dark: var(--spent-yellow-dark);
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   @apply antialiased;
+}
+
+/* Enforce tabular digits across quantitative metrics */
+.tabular-currency {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.015em;
 }
