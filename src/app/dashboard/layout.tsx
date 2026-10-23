@@ -48,15 +48,37 @@ export default function DashboardLayout({
             {/* Top Navbar */}
             <header className="sticky top-0 z-30 bg-card border-b border-card-border px-4 py-3 sm:px-8">
                 <div className="max-w-5xl mx-auto flex items-center justify-between">
-                    <Link href="/dashboard" className="flex items-center gap-2">
-                        <div className="w-9 h-9 bg-spent-violet text-white rounded-xl flex items-center justify-center font-bold text-lg shadow-sm">
-                            S
-                        </div>
-                        <span className="text-xl font-extrabold text-card-foreground tracking-tight">
-                            Spent
-                        </span>
-                    </Link>
 
+                    {/* Left: Brand & Desktop Navigation */}
+                    <div className="flex items-center gap-8">
+                        <Link href="/dashboard" className="flex items-center gap-2">
+                            <div className="w-9 h-9 bg-spent-violet text-white rounded-xl flex items-center justify-center font-bold text-lg shadow-sm">
+                                S
+                            </div>
+                            <span className="text-xl font-extrabold text-card-foreground tracking-tight">
+                                Spent
+                            </span>
+                        </Link>
+
+                        {/* Desktop-only Navigation Links */}
+                        <nav className="hidden sm:flex items-center gap-6">
+                            <Link
+                                href="/dashboard"
+                                className="text-sm font-bold text-muted hover:text-card-foreground transition-colors"
+                            >
+                                Dashboard
+                            </Link>
+                            <Link
+                                href="/dashboard/stats"
+                                className="text-sm font-bold text-muted hover:text-card-foreground transition-colors flex items-center gap-1.5"
+                            >
+                                <span>📊</span>
+                                <span>Cycle Stats</span>
+                            </Link>
+                        </nav>
+                    </div>
+
+                    {/* Right: User Profile & Actions */}
                     <Suspense fallback={<div className="h-8 w-24 bg-input-bg rounded-lg animate-pulse" />}>
                         <UserProfileHeader />
                     </Suspense>
@@ -69,7 +91,7 @@ export default function DashboardLayout({
             </main>
 
             {/* Mobile Bottom Navigation Bar */}
-            <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-md border-t border-card-border px-6 py-2 flex items-center justify-around">
+            <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-md border-t border-card-border px-6 py-2 flex items-center justify-around pb-safe">
                 <Link
                     href="/dashboard"
                     className="flex flex-col items-center gap-1 text-spent-violet dark:text-spent-violet-light font-bold text-xs"
@@ -78,7 +100,7 @@ export default function DashboardLayout({
                     <span>Home</span>
                 </Link>
                 <Link
-                    href="/dashboard#analytics"
+                    href="/dashboard/stats"
                     className="flex flex-col items-center gap-1 text-muted hover:text-card-foreground font-medium text-xs transition-colors"
                 >
                     <span className="text-xl">📊</span>
