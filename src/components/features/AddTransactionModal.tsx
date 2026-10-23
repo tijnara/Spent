@@ -85,13 +85,14 @@ export default function AddTransactionModal({
 
     return (
         <>
+            {/* Elevated above the mobile bottom nav (bottom-20) and anchored to bottom-6 on desktop */}
             {controlledIsOpen === undefined && (
                 <button
                     type="button"
                     onClick={() => setInternalIsOpen(true)}
-                    className="fixed bottom-6 right-6 z-40 bg-spent-yellow text-spent-violet-dark hover:bg-spent-yellow-dark px-5 py-3.5 rounded-2xl font-black text-sm shadow-xl flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
+                    className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-50 bg-[#FACC15] hover:bg-[#EAB308] text-[#0B0813] px-4 py-3 sm:px-5 sm:py-3.5 rounded-2xl font-black text-xs sm:text-sm shadow-2xl flex items-center gap-2 border border-white/20 transition-all active:scale-95 cursor-pointer"
                 >
-                    <span className="text-base font-bold">+</span>
+                    <span className="text-base font-extrabold">+</span>
                     <span>Add Spent</span>
                 </button>
             )}
