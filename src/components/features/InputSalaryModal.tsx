@@ -7,12 +7,14 @@ import { getManilaDate } from '../../lib/date'
 export default function InputSalaryModal() {
     const [isOpen, setIsOpen] = useState(false)
     const [loading, setLoading] = useState(false)
+    const [note, setNote] = useState('Active Salary')
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
         setLoading(true)
 
         const formData = new FormData(e.currentTarget)
+        formData.set('note', note.trim().toUpperCase())
 
         try {
             await inputSalary(formData)
@@ -68,11 +70,12 @@ export default function InputSalaryModal() {
                                         placeholder="0.00"
                                         required
                                         autoFocus
-                                        className="w-full pl-10 pr-4 py-3 bg-input-bg border border-input-border rounded-xl text-2xl font-extrabold text-input-text placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-spent-violet"
+                                        className="w-full pl-10 pr-4 py-3 bg-input-bg border border-input-border rounded-xl text-2xl font-extrabold text-input-text placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-spent-violet tabular-nums"
                                     />
                                 </div>
                             </div>
 
+                            {/* Note / Label: Forced UPPERCASE */}
                             <div>
                                 <label className="block text-xs font-semibold uppercase tracking-wider text-muted mb-1">
                                     Label / Note
@@ -80,9 +83,10 @@ export default function InputSalaryModal() {
                                 <input
                                     name="note"
                                     type="text"
-                                    defaultValue="Active Salary"
+                                    value={note}
+                                    onChange={(e) => setNote(e.target.value.toUpperCase())}
                                     placeholder="e.g. Monthly Salary, Cut-off Pay"
-                                    className="w-full px-4 py-2.5 bg-input-bg border border-input-border rounded-xl text-sm text-input-text placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-spent-violet"
+                                    className="w-full px-4 py-2.5 bg-input-bg border border-input-border rounded-xl text-sm text-input-text placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-spent-violet uppercase"
                                 />
                             </div>
 

@@ -5,6 +5,10 @@ import { updateTransaction, deleteTransaction } from '../../app/dashboard/action
 import { formatManilaDateTime, getManilaDate } from '../../lib/date'
 import CategoryCombobox from './CategoryCombobox'
 
+function toTitleCase(str: string): string {
+    return str.replace(/\b\w/g, (char) => char.toUpperCase())
+}
+
 interface Category {
     id: string
     name: string
@@ -38,7 +42,6 @@ export default function EditTransactionModal({
     const [loading, setLoading] = useState(false)
     const [deleting, setDeleting] = useState(false)
 
-    // Initialize category ID from transaction if present
     const initialCatId = transaction
         ? (Array.isArray(transaction.categories)
         ? transaction.categories[0]?.id
@@ -47,6 +50,7 @@ export default function EditTransactionModal({
 
     const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(initialCatId)
     const [newCategoryName, setNewCategoryName] = useState<string>('')
+    const [note, setNote] = useState<string>(transaction?.note?.toUpperCase() || '')
     const [categoryError, setCategoryError] = useState(false)
 
     if (!transaction) return null
@@ -54,7 +58,6 @@ export default function EditTransactionModal({
     async function handleUpdate(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
 
-        // Prompt user if no category is assigned
         if (!selectedCategoryId && !newCategoryName.trim()) {
             setCategoryError(true)
             return
@@ -66,11 +69,12 @@ export default function EditTransactionModal({
         const form = e.currentTarget
         const formData = new FormData(form)
         formData.set('id', transaction!.id)
+        formData.set('note', note.trim().toUpperCase())
 
         if (selectedCategoryId) {
             formData.set('category_id', selectedCategoryId)
         } else if (newCategoryName.trim()) {
-            formData.set('new_category_name', newCategoryName.trim())
+            formData.set('new_category_name', toTitleCase(newCategoryName.trim()))
         }
 
         try {
@@ -116,13 +120,12 @@ export default function EditTransactionModal({
                     </button>
                 </div>
 
-                {/* Timestamp Info Badge */}
                 {transaction.created_at && (
                     <div className="mb-4 px-3 py-2 rounded-xl bg-input-bg border border-input-border text-[11px] text-muted flex items-center justify-between">
                         <span>🕒 Recorded at:</span>
                         <span className="font-bold text-card-foreground">
-              {formatManilaDateTime(transaction.created_at)}
-            </span>
+                            {formatManilaDateTime(transaction.created_at)}
+                        </span>
                     </div>
                 )}
 
@@ -132,9 +135,9 @@ export default function EditTransactionModal({
                             Amount
                         </label>
                         <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-muted select-none">
-                ₱
-              </span>
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-muted select-none">
+                                ₱
+                            </span>
                             <input
                                 name="amount"
                                 type="number"
@@ -142,7 +145,7 @@ export default function EditTransactionModal({
                                 defaultValue={transaction.amount}
                                 required
                                 autoFocus
-                                className="w-full pl-10 pr-4 py-3 bg-input-bg border border-input-border rounded-xl text-2xl font-extrabold text-input-text focus:outline-none focus:ring-2 focus:ring-spent-violet"
+                                className="w-full pl-10 pr-4 py-3 bg-input-bg border border-input-border rounded-xl text-2xl font-extrabold text-input-text focus:outline-none focus:ring-2 focus:ring-spent-violet tabular-nums"
                             />
                         </div>
                     </div>
@@ -161,7 +164,6 @@ export default function EditTransactionModal({
                         </select>
                     </div>
 
-                    {/* Searchable / Auto-adding Category Dropdown Combobox */}
                     <div>
                         <label className="block text-xs font-semibold uppercase tracking-wider text-muted mb-1.5">
                             Category
@@ -178,13 +180,14 @@ export default function EditTransactionModal({
                             }}
                             onSetNewCategory={(name) => {
                                 setSelectedCategoryId(null)
-                                setNewCategoryName(name)
+                                setNewCategoryName(toTitleCase(name))
                                 setCategoryError(false)
                             }}
                             hasError={categoryError}
                         />
                     </div>
 
+                    {/* Note / Description: Forced UPPERCASE */}
                     <div>
                         <label className="block text-xs font-semibold uppercase tracking-wider text-muted mb-1">
                             Note / Description
@@ -192,9 +195,10 @@ export default function EditTransactionModal({
                         <input
                             name="note"
                             type="text"
-                            defaultValue={transaction.note || ''}
+                            value={note}
+                            onChange={(e) => setNote(e.target.value.toUpperCase())}
                             placeholder="e.g. Lunch, Grocery"
-                            className="w-full px-4 py-2.5 bg-input-bg border border-input-border rounded-xl text-sm text-input-text focus:outline-none focus:ring-2 focus:ring-spent-violet"
+                            className="w-full px-4 py-2.5 bg-input-bg border border-input-border rounded-xl text-sm text-input-text focus:outline-none focus:ring-2 focus:ring-spent-violet uppercase"
                         />
                     </div>
 

@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { addCategory, updateCategory, deleteCategory } from '../../app/dashboard/actions'
 
+function toTitleCase(str: string): string {
+    return str.replace(/\b\w/g, (char) => char.toUpperCase())
+}
+
 export interface CategoryItem {
     id: string
     name: string
@@ -36,7 +40,6 @@ export default function ManageCategoriesModal({
     const [isCreating, setIsCreating] = useState(false)
     const [loading, setLoading] = useState(false)
 
-    // Form inputs state
     const [nameInput, setNameInput] = useState('')
     const [iconInput, setIconInput] = useState('🏷️')
     const [typeInput, setTypeInput] = useState<'expense' | 'income'>('expense')
@@ -64,7 +67,7 @@ export default function ManageCategoriesModal({
     function startEdit(cat: CategoryItem) {
         setIsCreating(false)
         setEditingCategory(cat)
-        setNameInput(cat.name)
+        setNameInput(toTitleCase(cat.name))
         setIconInput(cat.icon || '🏷️')
         setTypeInput(cat.type as 'expense' | 'income')
     }
@@ -85,7 +88,7 @@ export default function ManageCategoriesModal({
         setLoading(true)
 
         const formData = new FormData()
-        formData.set('name', nameInput.trim())
+        formData.set('name', toTitleCase(nameInput.trim()))
         formData.set('icon', iconInput.trim())
         formData.set('type', typeInput)
 
@@ -131,7 +134,6 @@ export default function ManageCategoriesModal({
 
     const currentList = categories.filter((c) => c.type === filterType)
 
-    // The modal backdrop and dialog with explicit inline z-index of 99999
     const modalContent = isModalOpen && (
         <div
             onClick={handleClose}
@@ -160,7 +162,7 @@ export default function ManageCategoriesModal({
                     </button>
                 </div>
 
-                {/* Expense / Income Filter Switcher */}
+                {/* Switcher */}
                 <div className="grid grid-cols-2 p-1 bg-input-bg border border-input-border rounded-xl">
                     <button
                         type="button"
@@ -192,7 +194,7 @@ export default function ManageCategoriesModal({
                     </button>
                 </div>
 
-                {/* Add / Edit Form Box (Using <div> to prevent nested HTML form errors) */}
+                {/* Add / Edit Form */}
                 {(isCreating || editingCategory) && (
                     <div className="p-4 bg-input-bg/70 border border-input-border rounded-2xl space-y-3 animate-in slide-in-from-top-2 duration-150">
                         <div className="flex justify-between items-center">
@@ -209,7 +211,6 @@ export default function ManageCategoriesModal({
                         </div>
 
                         <div className="grid grid-cols-4 gap-2">
-                            {/* Icon Emoji Selector */}
                             <div className="col-span-1">
                                 <label className="block text-[10px] font-bold uppercase text-muted mb-1">
                                     Icon
@@ -224,7 +225,7 @@ export default function ManageCategoriesModal({
                                 />
                             </div>
 
-                            {/* Category Name */}
+                            {/* Category Name: Auto Title-Case */}
                             <div className="col-span-3">
                                 <label className="block text-[10px] font-bold uppercase text-muted mb-1">
                                     Category Name
@@ -232,7 +233,7 @@ export default function ManageCategoriesModal({
                                 <input
                                     type="text"
                                     value={nameInput}
-                                    onChange={(e) => setNameInput(e.target.value)}
+                                    onChange={(e) => setNameInput(toTitleCase(e.target.value))}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
                                             e.preventDefault()
@@ -242,12 +243,11 @@ export default function ManageCategoriesModal({
                                     }}
                                     placeholder="e.g. Groceries, Gym, Tech"
                                     autoFocus
-                                    className="w-full px-3 py-2 bg-card border border-input-border rounded-xl text-sm font-semibold text-input-text placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-spent-violet"
+                                    className="w-full px-3 py-2 bg-card border border-input-border rounded-xl text-sm font-semibold text-input-text placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-spent-violet capitalize"
                                 />
                             </div>
                         </div>
 
-                        {/* Quick Emoji Suggestions */}
                         <div className="flex items-center gap-1.5 overflow-x-auto py-1">
                             {COMMON_EMOJIS.map((emoji) => (
                                 <button
@@ -328,7 +328,6 @@ export default function ManageCategoriesModal({
                     )}
                 </div>
 
-                {/* Add Button Trigger */}
                 {!isCreating && !editingCategory && (
                     <button
                         type="button"
@@ -359,7 +358,6 @@ export default function ManageCategoriesModal({
                 </button>
             ) : null}
 
-            {/* Portaled directly into document.body to break out of any parent stacking contexts */}
             {mounted && isModalOpen && typeof document !== 'undefined'
                 ? createPortal(modalContent, document.body)
                 : null}
