@@ -47,9 +47,7 @@ async function DashboardContent() {
     const supabase = await createClient()
 
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-        redirect('/login')
-    }
+    if (!user) redirect('/login')
 
     const { data: profile } = await supabase
         .from('profiles')
@@ -99,7 +97,7 @@ async function DashboardContent() {
 
     const netBalance = totalIncome - totalExpense
 
-    // --- SALARY CYCLES WITH EXACT TIMESTAMPS ---
+    // --- SALARY CYCLES ---
     const salaryTransactions = safeTransactions
         .filter((t) => {
             if (t.type !== 'income') return false
@@ -109,11 +107,12 @@ async function DashboardContent() {
         .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
 
     const salaryCycles: SalaryCycle[] = salaryTransactions.map((salaryTx, idx) => {
+        const isActive = idx === salaryTransactions.length - 1
         const startTimestamp = new Date(salaryTx.created_at).getTime()
         const nextSalary = salaryTransactions[idx + 1]
         const endTimestamp = nextSalary ? new Date(nextSalary.created_at).getTime() : Infinity
-        const isActive = idx === salaryTransactions.length - 1
 
+        // Each cycle strictly captures expenses logged after its own starting timestamp
         const cycleExpenses = safeTransactions
             .filter((t) => {
                 if (t.type !== 'expense') return false
@@ -173,7 +172,7 @@ async function DashboardContent() {
                     <span className="text-xs font-bold uppercase tracking-wider text-muted">
                         Spent Today
                     </span>
-                    <p className="text-3xl font-black text-card-foreground mt-1">
+                    <p className="text-3xl font-black text-card-foreground mt-1 tabular-nums">
                         ₱{spentToday.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                     <span className="text-xs text-muted mt-2 block font-medium">
@@ -186,7 +185,7 @@ async function DashboardContent() {
                         Net Balance
                     </span>
                     <p
-                        className={`text-3xl font-black mt-1 ${
+                        className={`text-3xl font-black mt-1 tabular-nums ${
                             netBalance >= 0 ? 'text-card-foreground' : 'text-red-500'
                         }`}
                     >
@@ -204,14 +203,14 @@ async function DashboardContent() {
                     <div className="flex justify-between items-center mt-2">
                         <div>
                             <span className="text-xs text-muted block">Total In</span>
-                            <span className="font-extrabold text-emerald-600 dark:text-emerald-400">
+                            <span className="font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums">
                                 +₱{totalIncome.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                         </div>
                         <div className="h-8 w-px bg-card-border"></div>
                         <div>
                             <span className="text-xs text-muted block">Total Out</span>
-                            <span className="font-extrabold text-red-500">
+                            <span className="font-extrabold text-red-500 tabular-nums">
                                 -₱{totalExpense.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                         </div>
@@ -231,11 +230,15 @@ async function DashboardContent() {
                             Real-time budget deductions for the active salary period
                         </p>
                     </div>
-                    <InputSalaryModal />
+                    <InputSalaryModal
+                        lastSalaryAmount={totalSalaryInputted}
+                        lastSalaryNote={activeCycle?.note || 'ACTIVE SALARY'}
+                        lastSalaryDate={activeCycle?.startDate}
+                    />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                    {/* LEFT SIDE: Allocated Salary with Exact Time */}
+                    {/* LEFT SIDE: Allocated Salary */}
                     <div className="space-y-2">
                         <div className="flex items-center gap-2">
                             <span className="h-2 w-2 rounded-full bg-spent-violet"></span>
@@ -243,7 +246,7 @@ async function DashboardContent() {
                                 Allocated Salary
                             </span>
                         </div>
-                        <p className="text-3xl sm:text-4xl font-black text-card-foreground">
+                        <p className="text-3xl sm:text-4xl font-black text-card-foreground tabular-nums">
                             ₱{totalSalaryInputted.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
                         <p className="text-xs text-muted font-medium">
@@ -267,7 +270,7 @@ async function DashboardContent() {
                             </span>
                         </div>
 
-                        <p className={`text-3xl sm:text-4xl font-black ${remainingSalary >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
+                        <p className={`text-3xl sm:text-4xl font-black tabular-nums ${remainingSalary >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
                             ₱{remainingSalary.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
 
@@ -284,6 +287,55 @@ async function DashboardContent() {
                             </p>
                         </div>
                     </div>
+                </div>
+
+                {/* ACTIVE CYCLE EXPENSES FEED */}
+                <div className="mt-6 pt-5 border-t border-card-border">
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-muted flex items-center gap-1.5">
+                            <span>🧾</span>
+                            <span>Expenses Deducted from this Salary ({activeCycle?.expenses.length || 0})</span>
+                        </h3>
+                        {activeCycle && (
+                            <span className="text-xs font-bold text-red-500 tabular-nums">
+                                -₱{activeSalaryDeducted.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                        )}
+                    </div>
+
+                    {activeCycle && activeCycle.expenses.length > 0 ? (
+                        <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                            {activeCycle.expenses.map((exp) => (
+                                <div
+                                    key={exp.id}
+                                    className="flex items-center justify-between p-3 rounded-2xl bg-input-bg border border-input-border hover:border-spent-violet/30 transition-colors"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <span className="w-8 h-8 rounded-xl bg-card border border-card-border flex items-center justify-center text-sm shrink-0">
+                                            {exp.categoryIcon || '🏷️'}
+                                        </span>
+                                        <div>
+                                            <p className="font-extrabold text-sm text-card-foreground">
+                                                {exp.note || exp.categoryName || 'EXPENSE'}
+                                            </p>
+                                            <p className="text-[10px] text-muted font-medium">
+                                                {exp.categoryName ? `${exp.categoryName} • ` : ''}{exp.transaction_date}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <span className="font-black text-sm text-red-500 tabular-nums">
+                                        -₱{exp.amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="p-4 rounded-2xl bg-input-bg border border-input-border text-center">
+                            <p className="text-xs text-muted font-medium">
+                                No expenses logged against this salary yet. Tap <strong className="text-spent-yellow">+ Add Spent</strong> to record your first deduction.
+                            </p>
+                        </div>
+                    )}
                 </div>
             </section>
 

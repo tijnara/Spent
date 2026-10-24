@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { addTransaction } from '../../app/dashboard/actions'
 import { getManilaDate } from '../../lib/date'
 import CategoryCombobox from './CategoryCombobox'
@@ -21,6 +22,7 @@ export default function AddTransactionModal({
                                                 isOpen: controlledIsOpen,
                                                 onClose: controlledOnClose,
                                             }: AddTransactionModalProps) {
+    const router = useRouter()
     const [internalIsOpen, setInternalIsOpen] = useState(false)
     const isModalOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen
 
@@ -75,6 +77,7 @@ export default function AddTransactionModal({
 
         try {
             await addTransaction(formData)
+            router.refresh()
             handleClose()
         } catch (err: any) {
             alert(err.message || 'Failed to save transaction')
@@ -85,7 +88,6 @@ export default function AddTransactionModal({
 
     return (
         <>
-            {/* Elevated above the mobile bottom nav (bottom-20) and anchored to bottom-6 on desktop */}
             {controlledIsOpen === undefined && (
                 <button
                     type="button"
@@ -106,7 +108,6 @@ export default function AddTransactionModal({
                         onClick={(e) => e.stopPropagation()}
                         className="w-full sm:max-w-md bg-card border border-card-border rounded-t-3xl sm:rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 animate-in slide-in-from-bottom duration-200"
                     >
-                        {/* Header */}
                         <div className="flex justify-between items-center">
                             <h3 className="text-xl font-extrabold text-card-foreground">
                                 Log Transaction
@@ -120,7 +121,6 @@ export default function AddTransactionModal({
                             </button>
                         </div>
 
-                        {/* Expense / Income Switcher */}
                         <div className="grid grid-cols-2 p-1 bg-input-bg border border-input-border rounded-xl">
                             <button
                                 type="button"
@@ -155,7 +155,6 @@ export default function AddTransactionModal({
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
-                            {/* Amount */}
                             <div>
                                 <label className="block text-xs font-semibold uppercase tracking-wider text-muted mb-1">
                                     Amount
@@ -178,7 +177,6 @@ export default function AddTransactionModal({
                                 </div>
                             </div>
 
-                            {/* Category with Manage Link */}
                             <div>
                                 <div className="flex justify-between items-center mb-1.5">
                                     <label className="block text-xs font-semibold uppercase tracking-wider text-muted">
@@ -213,7 +211,6 @@ export default function AddTransactionModal({
                                 />
                             </div>
 
-                            {/* Note / Description: Forced UPPERCASE */}
                             <div>
                                 <label className="block text-xs font-semibold uppercase tracking-wider text-muted mb-1">
                                     Note / Description
@@ -227,7 +224,6 @@ export default function AddTransactionModal({
                                 />
                             </div>
 
-                            {/* Date */}
                             <div>
                                 <label className="block text-xs font-semibold uppercase tracking-wider text-muted mb-1">
                                     Date
