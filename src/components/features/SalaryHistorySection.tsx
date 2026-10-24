@@ -33,11 +33,15 @@ interface SalaryHistorySectionProps {
 }
 
 export default function SalaryHistorySection({ cycles }: SalaryHistorySectionProps) {
+    // Exclude the currently active cycle so only closed/historical cycles are shown
+    const historicalCycles = cycles.filter((c) => !c.isActive)
+
     const [expandedCycleId, setExpandedCycleId] = useState<string | null>(
-        cycles[0]?.id || null
+        historicalCycles[0]?.id || null
     )
 
-    if (cycles.length === 0) {
+    // Hide section entirely if there are no closed cycles yet
+    if (historicalCycles.length === 0) {
         return null
     }
 
@@ -54,26 +58,22 @@ export default function SalaryHistorySection({ cycles }: SalaryHistorySectionPro
                         <span>Salary & Expense Cycle History</span>
                     </h2>
                     <p className="text-xs text-muted font-medium mt-0.5">
-                        Breakdown with exact timestamps for each salary cycle
+                        Breakdown with exact timestamps for each closed payroll cycle
                     </p>
                 </div>
-                <span className="text-xs font-bold px-2.5 py-1 bg-input-bg border border-input-border rounded-xl text-muted">
-                    {cycles.length} Cycle{cycles.length > 1 ? 's' : ''}
+                <span className="text-xs font-bold px-2.5 py-1 bg-input-bg border border-input-border rounded-xl text-muted tabular-nums">
+                    {historicalCycles.length} Closed {historicalCycles.length === 1 ? 'Cycle' : 'Cycles'}
                 </span>
             </div>
 
             <div className="space-y-4">
-                {cycles.map((cycle, index) => {
+                {historicalCycles.map((cycle, index) => {
                     const isExpanded = expandedCycleId === cycle.id
 
                     return (
                         <div
                             key={cycle.id}
-                            className={`border rounded-2xl transition-all overflow-hidden ${
-                                cycle.isActive
-                                    ? 'border-spent-violet/40 bg-spent-violet/5'
-                                    : 'border-card-border bg-input-bg/30'
-                            }`}
+                            className="border rounded-2xl transition-all overflow-hidden border-card-border bg-input-bg/30"
                         >
                             {/* Cycle Summary Card Header */}
                             <div
@@ -82,21 +82,15 @@ export default function SalaryHistorySection({ cycles }: SalaryHistorySectionPro
                             >
                                 <div className="space-y-1">
                                     <div className="flex items-center gap-2">
-                                        <span className="font-extrabold text-base text-card-foreground">
+                                        <span className="font-extrabold text-base text-card-foreground tabular-nums">
                                             ₱{cycle.salaryAmount.toLocaleString('en-PH', {
                                             minimumFractionDigits: 2,
                                             maximumFractionDigits: 2,
                                         })}
                                         </span>
-                                        {cycle.isActive ? (
-                                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-spent-yellow text-spent-violet-dark shadow-xs">
-                                                Active Cycle
-                                            </span>
-                                        ) : (
-                                            <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-card border border-card-border text-muted">
-                                                Cycle #{cycles.length - index}
-                                            </span>
-                                        )}
+                                        <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-card border border-card-border text-muted">
+                                            Cycle #{historicalCycles.length - index}
+                                        </span>
                                     </div>
 
                                     {/* Exact Date & Time Range */}
@@ -106,7 +100,7 @@ export default function SalaryHistorySection({ cycles }: SalaryHistorySectionPro
                                         <span>
                                             {cycle.endCreatedAt
                                                 ? formatManilaDateTime(cycle.endCreatedAt)
-                                                : 'Present'}
+                                                : 'Closed'}
                                         </span>
                                         <span>•</span>
                                         <span>{cycle.note}</span>
@@ -119,7 +113,7 @@ export default function SalaryHistorySection({ cycles }: SalaryHistorySectionPro
                                         <span className="text-xs text-muted block font-semibold">
                                             Remaining / Spent
                                         </span>
-                                        <div className="flex items-center gap-1.5 font-black text-sm">
+                                        <div className="flex items-center gap-1.5 font-black text-sm tabular-nums">
                                             <span
                                                 className={
                                                     cycle.remainingSalary >= 0
@@ -143,7 +137,7 @@ export default function SalaryHistorySection({ cycles }: SalaryHistorySectionPro
 
                                     <button
                                         type="button"
-                                        className="h-8 w-8 rounded-xl bg-card border border-card-border flex items-center justify-center text-xs font-bold text-muted hover:text-card-foreground transition-transform"
+                                        className="h-8 w-8 rounded-xl bg-card border border-card-border flex items-center justify-center text-xs font-bold text-muted hover:text-card-foreground transition-transform cursor-pointer"
                                         aria-label="Toggle cycle details"
                                     >
                                         <span className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
@@ -165,12 +159,12 @@ export default function SalaryHistorySection({ cycles }: SalaryHistorySectionPro
                                                         : 'bg-red-500'
                                                 }`}
                                                 style={{ width: `${cycle.percentLeft}%` }}
-                                            ></div>
+                                            />
                                         </div>
                                         <div className="flex justify-between text-[11px] text-muted font-semibold">
                                             <span>{cycle.percentLeft.toFixed(1)}% remaining</span>
                                             <span>
-                                                {cycle.expenses.length} expense{cycle.expenses.length !== 1 ? 's' : ''} logged
+                                                {cycle.expenses.length} {cycle.expenses.length === 1 ? 'expense' : 'expenses'} logged
                                             </span>
                                         </div>
                                     </div>
@@ -196,7 +190,6 @@ export default function SalaryHistorySection({ cycles }: SalaryHistorySectionPro
                                                             <p className="font-bold text-card-foreground">
                                                                 {exp.note || exp.categoryName || 'General Expense'}
                                                             </p>
-                                                            {/* Exact Date & Time */}
                                                             <span className="text-[11px] text-muted font-medium">
                                                                 {formatManilaDateTime(exp.created_at || exp.transaction_date)}
                                                                 {exp.categoryName ? ` • ${exp.categoryName}` : ''}
@@ -204,7 +197,7 @@ export default function SalaryHistorySection({ cycles }: SalaryHistorySectionPro
                                                         </div>
                                                     </div>
 
-                                                    <span className="font-black text-red-500 sm:text-sm">
+                                                    <span className="font-black text-red-500 sm:text-sm tabular-nums">
                                                         -₱{Number(exp.amount).toLocaleString('en-PH', {
                                                         minimumFractionDigits: 2,
                                                         maximumFractionDigits: 2,

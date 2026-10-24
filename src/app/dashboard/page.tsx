@@ -4,7 +4,6 @@ import { connection } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getManilaDate, formatManilaDateTime } from '@/lib/date'
 import AddTransactionModal from '@/components/features/AddTransactionModal'
-import TransactionList from '@/components/features/TransactionList'
 import InputSalaryModal from '@/components/features/InputSalaryModal'
 import SalaryHistorySection, { SalaryCycle } from '@/components/features/SalaryHistorySection'
 
@@ -35,7 +34,6 @@ function DashboardSkeleton() {
                 <div className="h-32 bg-card border border-card-border rounded-3xl p-5"></div>
             </section>
             <section className="h-44 bg-card border border-card-border rounded-3xl p-6"></section>
-            <section className="h-64 bg-card border border-card-border rounded-3xl p-6"></section>
             <section className="h-72 bg-card border border-card-border rounded-3xl p-5"></section>
         </div>
     )
@@ -112,7 +110,6 @@ async function DashboardContent() {
         const nextSalary = salaryTransactions[idx + 1]
         const endTimestamp = nextSalary ? new Date(nextSalary.created_at).getTime() : Infinity
 
-        // Each cycle strictly captures expenses logged after its own starting timestamp
         const cycleExpenses = safeTransactions
             .filter((t) => {
                 if (t.type !== 'expense') return false
@@ -156,6 +153,9 @@ async function DashboardContent() {
     }).reverse()
 
     const activeCycle = salaryCycles[0] || null
+    // Exclude the currently active cycle from the history list
+    const pastCycles = salaryCycles.filter((c) => !c.isActive)
+
     const totalSalaryInputted = activeCycle ? activeCycle.salaryAmount : (profile?.salary ? Number(profile.salary) : 0)
     const activeSalaryDeducted = activeCycle ? activeCycle.totalDeducted : 0
     const remainingSalary = totalSalaryInputted - activeSalaryDeducted
@@ -339,26 +339,10 @@ async function DashboardContent() {
                 </div>
             </section>
 
-            {/* Historical Salary Periods & Grouped Expenses */}
-            <SalaryHistorySection cycles={salaryCycles} />
+            {/* Historical Closed Salary Periods */}
+            <SalaryHistorySection cycles={pastCycles} />
 
-            {/* General Transaction Feed */}
-            <section className="bg-card border border-card-border rounded-3xl p-5 sm:p-6 shadow-sm">
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-extrabold text-card-foreground">
-                        Recent Transactions
-                    </h2>
-                    <span className="text-xs font-bold text-muted">
-                        {safeTransactions.length} Total
-                    </span>
-                </div>
-
-                <TransactionList
-                    transactions={safeTransactions as any}
-                    categories={categories || []}
-                />
-            </section>
-
+            {/* Floating Add Spent Trigger */}
             <AddTransactionModal categories={categories || []} />
         </div>
     )

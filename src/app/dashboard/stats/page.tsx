@@ -5,8 +5,10 @@ import { createClient } from '@/lib/supabase/server'
 import StatsView from '@/components/features/StatsView'
 
 interface CategoryData {
+    id: string
     name: string
     icon: string
+    color: string
 }
 
 interface TransactionRecord {
@@ -16,6 +18,7 @@ interface TransactionRecord {
     note: string | null
     transaction_date: string
     created_at: string
+    category_id: string | null
     categories: CategoryData | CategoryData[] | null
 }
 
@@ -36,6 +39,7 @@ function StatsSkeleton() {
                 <div className="lg:col-span-1 h-[220px] bg-card border border-card-border rounded-3xl p-6"></div>
                 <div className="lg:col-span-2 h-[220px] bg-card border border-card-border rounded-3xl p-6"></div>
             </div>
+            <div className="h-80 bg-card border border-card-border rounded-3xl p-6"></div>
         </div>
     )
 }
@@ -47,12 +51,29 @@ async function StatsContent() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) redirect('/login')
 
+    const { data: categories } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name', { ascending: true })
+
     const { data: rawTransactions } = await supabase
         .from('transactions')
         .select(`
-            id, amount, type, note, transaction_date, created_at,
-            categories ( name, icon )
+            id,
+            amount,
+            type,
+            note,
+            transaction_date,
+            created_at,
+            category_id,
+            categories (
+                id,
+                name,
+                icon,
+                color
+            )
         `)
+        .order('transaction_date', { ascending: false })
         .order('created_at', { ascending: false })
 
     const safeTransactions = (rawTransactions as unknown as TransactionRecord[]) || []
@@ -83,12 +104,11 @@ async function StatsContent() {
             expenses: cycleExpenses,
             totalDeducted: cycleExpenses.reduce((acc, exp) => acc + Number(exp.amount), 0),
         }
-    }).reverse() // Most recent first
+    }).reverse()
 
     const activeCycle = cycles[0]
     const previousCycle = cycles[1]
 
-    // Default empty states if no data exists
     let activeCycleStr = 'No Active Cycle'
     let burnRateData: any[] = []
     let topCategories: any[] = []
@@ -115,9 +135,9 @@ async function StatsContent() {
                 percent: activeCycle.totalDeducted > 0 ? (data.amount / activeCycle.totalDeducted) * 100 : 0
             }))
             .sort((a, b) => b.amount - a.amount)
-            .slice(0, 4) // Top 4
+            .slice(0, 4)
 
-        // Surplus History (All previous cycles)
+        // Surplus History
         surplusHistory = cycles.slice(1).map(c => {
             const surplus = c.salaryAmount - c.totalDeducted
             return {
@@ -139,11 +159,10 @@ async function StatsContent() {
             nowAmount
         }
 
-        // Basic Burn Rate Generation (Cumulative by transaction date)
+        // Burn Rate Generation
         let cumulative = 0
         const sortedExpenses = [...activeCycle.expenses].sort((a, b) => new Date(a.transaction_date).getTime() - new Date(b.transaction_date).getTime())
 
-        // Group by date
         const dailySpend = new Map()
         sortedExpenses.forEach(exp => {
             const current = dailySpend.get(exp.transaction_date) || 0
@@ -151,12 +170,12 @@ async function StatsContent() {
         })
 
         let dayCounter = 1
-        dailySpend.forEach((amount, date) => {
+        dailySpend.forEach((amount) => {
             cumulative += amount
             burnRateData.push({
                 day: `Day ${dayCounter}`,
                 actual: cumulative,
-                ideal: (activeCycle.salaryAmount / 15) * dayCounter // Assumes roughly 15 days per cycle
+                ideal: (activeCycle.salaryAmount / 15) * dayCounter
             })
             dayCounter++
         })
@@ -169,6 +188,8 @@ async function StatsContent() {
             topCategories={topCategories}
             surplusHistory={surplusHistory}
             comparison={comparison}
+            transactions={safeTransactions}
+            categories={categories || []}
         />
     )
 }
