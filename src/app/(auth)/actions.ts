@@ -1,32 +1,8 @@
 'use server'
 
-import { createServerClient } from '@supabase/ssr'
-import { cookies, headers } from 'next/headers'
+import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
-
-async function getSupabaseServerClient() {
-    const cookieStore = await cookies()
-    return createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-            cookies: {
-                getAll() {
-                    return cookieStore.getAll()
-                },
-                setAll(cookiesToSet) {
-                    try {
-                        cookiesToSet.forEach(({ name, value, options }) =>
-                            cookieStore.set(name, value, options)
-                        )
-                    } catch {
-                        // Handled when called from Server Components
-                    }
-                },
-            },
-        }
-    )
-}
+import { createClient } from '@/lib/supabase/server'
 
 async function getSiteUrl() {
     const headerList = await headers()
@@ -50,7 +26,7 @@ export async function login(formData: FormData) {
         redirect('/login?error=Please+provide+both+email+and+password')
     }
 
-    const supabase = await getSupabaseServerClient()
+    const supabase = await createClient()
 
     const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -73,7 +49,7 @@ export async function signup(formData: FormData) {
         redirect('/signup?error=Please+provide+both+email+and+password')
     }
 
-    const supabase = await getSupabaseServerClient()
+    const supabase = await createClient()
     const siteUrl = await getSiteUrl()
 
     const { data, error } = await supabase.auth.signUp({
@@ -105,7 +81,7 @@ export async function signup(formData: FormData) {
 }
 
 export async function signInWithGoogle() {
-    const supabase = await getSupabaseServerClient()
+    const supabase = await createClient()
     const siteUrl = await getSiteUrl()
 
     const { data, error } = await supabase.auth.signInWithOAuth({
@@ -125,7 +101,7 @@ export async function signInWithGoogle() {
 }
 
 export async function logout() {
-    const supabase = await getSupabaseServerClient()
+    const supabase = await createClient()
     await supabase.auth.signOut()
     redirect('/login')
 }
