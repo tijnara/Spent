@@ -189,12 +189,12 @@ export default function PwaManager() {
                 }
                 setPendingTransactions(queue)
                 setSyncCount(queue.length)
-                window.dispatchEvent(new Event('spent:offline-queue-updated'))
             }
 
             window.location.reload()
         } catch (err) {
             refreshPendingTransactions()
+            window.dispatchEvent(new Event('spent:offline-queue-updated'))
             console.error('Failed to sync offline items. They remain saved on this device:', err)
         }
     }
