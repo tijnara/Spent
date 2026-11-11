@@ -27,8 +27,16 @@ export async function middleware(request: NextRequest) {
         }
     )
 
-    // Securely fetch the user session from Supabase
-    const { data: { user } } = await supabase.auth.getUser()
+    // Auth refresh can fail while Supabase is unreachable. Keep public pages usable
+    // and let the cached offline shell handle requests made without a connection.
+    let user: { id: string } | null = null
+    try {
+        const { data } = await supabase.auth.getUser()
+        user = data.user
+    } catch (error) {
+        console.warn('Supabase auth check unavailable:', error)
+    }
+
     const { pathname } = request.nextUrl
 
     // 1. SMART LANDING PAGE:

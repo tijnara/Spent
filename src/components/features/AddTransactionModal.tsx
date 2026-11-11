@@ -79,8 +79,38 @@ export default function AddTransactionModal({
             await addTransaction(formData)
             router.refresh()
             handleClose()
-        } catch (err: any) {
-            alert(err.message || 'Failed to save transaction')
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err)
+            const isConnectionError =
+                !navigator.onLine || /network|fetch|offline|unexpected response|failed to invoke/i.test(message)
+
+            if (isConnectionError) {
+                const queue = JSON.parse(localStorage.getItem('spent_offline_queue') || '[]') as Array<Record<string, string>>
+                const transaction = Object.fromEntries(
+                    Array.from(formData.entries()).map(([key, value]) => [key, String(value)])
+                ) as Record<string, string>
+                queue.push({
+                    ...transaction,
+                    queue_id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+                })
+                localStorage.setItem('spent_offline_queue', JSON.stringify(queue))
+                const category = selectedCategoryId
+                    ? categories.find((item) => item.id === selectedCategoryId)?.name
+                    : transaction.new_category_name
+                const offlineEntries = JSON.parse(localStorage.getItem('spent_offline_transactions') || '[]') as Array<Record<string, string>>
+                offlineEntries.push({
+                    type: transaction.type,
+                    amount: transaction.amount,
+                    category: category || 'Uncategorized',
+                    date: transaction.transaction_date,
+                    note: transaction.note || '',
+                })
+                localStorage.setItem('spent_offline_transactions', JSON.stringify(offlineEntries))
+                alert('Saved on this device. Spent will sync it when your internet connection returns.')
+                handleClose()
+            } else {
+                alert(message || 'Failed to save transaction')
+            }
         } finally {
             setLoading(false)
         }

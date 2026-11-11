@@ -62,28 +62,43 @@ export default function PwaManager() {
         }
     }, [])
 
-    // 2. Offline Sync Function: Flush offline queue to Supabase
+    // 2. Offline Sync Function: Flush queued transactions one at a time.
+    // Remove an entry only after the server action succeeds so failed syncs never lose data.
     async function syncOfflineQueue() {
+        if (!navigator.onLine) return
+
         const rawQueue = localStorage.getItem('spent_offline_queue')
         if (!rawQueue) return
 
         try {
-            const queue: Array<Record<string, string>> = JSON.parse(rawQueue)
+            let queue = (JSON.parse(rawQueue) as Array<Record<string, string>>).map((item) => ({
+                ...item,
+                queue_id: item.queue_id || `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+            }))
             if (queue.length === 0) return
 
+            localStorage.setItem('spent_offline_queue', JSON.stringify(queue))
             setSyncCount(queue.length)
 
-            for (const item of queue) {
+            while (queue.length > 0) {
+                const [item, ...remaining] = queue
                 const formData = new FormData()
-                Object.entries(item).forEach(([key, value]) => formData.set(key, value))
+                Object.entries(item).forEach(([key, value]) => {
+                    if (key !== 'queue_id') formData.set(key, value)
+                })
                 await addTransaction(formData)
+                queue = remaining
+                if (queue.length > 0) {
+                    localStorage.setItem('spent_offline_queue', JSON.stringify(queue))
+                } else {
+                    localStorage.removeItem('spent_offline_queue')
+                }
+                setSyncCount(queue.length)
             }
 
-            localStorage.removeItem('spent_offline_queue')
-            setSyncCount(0)
             window.location.reload()
         } catch (err) {
-            console.error('Failed to sync offline items:', err)
+            console.error('Failed to sync offline items. They remain saved on this device:', err)
         }
     }
 
