@@ -38,6 +38,7 @@ export default function LoginForm() {
                 return
             }
 
+            window.dispatchEvent(new Event('spent:auth-ready'))
             router.replace('/dashboard')
             router.refresh()
         } catch (cause) {
@@ -95,8 +96,8 @@ export default function LoginForm() {
                 <div className="bg-red-500/10 border-l-4 border-red-500 p-4 rounded-r-xl">
                     <p className="text-red-600 dark:text-red-400 text-sm font-semibold">{error}</p>
                     {(isOffline || /internet connection|offline mode/i.test(error)) && (
-                        <Link href="/offline.html" className="mt-2 inline-block text-sm font-bold text-spent-violet underline">
-                            Open offline mode
+                        <Link href="/dashboard" className="mt-2 inline-block text-sm font-bold text-spent-violet underline">
+                            Open your saved dashboard
                         </Link>
                     )}
                 </div>
@@ -110,8 +111,8 @@ export default function LoginForm() {
                 {loading ? 'Signing in…' : 'Sign In'}
             </button>
 
-            <Link href="/offline.html" className="block text-center text-sm font-bold text-spent-violet hover:underline">
-                Continue in offline mode
+            <Link href="/dashboard" className="block text-center text-sm font-bold text-spent-violet hover:underline">
+                Continue with your saved dashboard
             </Link>
         </form>
     )
