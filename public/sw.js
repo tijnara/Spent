@@ -13,7 +13,7 @@ self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys()
             .then((names) => Promise.all(names.map((name) => {
-                if (name !== CACHE_NAME) return caches.delete(name);
+                if (name.startsWith('spent-cache-') && name !== CACHE_NAME) return caches.delete(name);
             })))
             .then(() => self.clients.claim())
     );
