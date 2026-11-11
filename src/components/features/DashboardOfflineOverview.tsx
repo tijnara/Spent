@@ -4,7 +4,7 @@ import ActiveCycleExpensesList from '@/components/features/ActiveCycleExpensesLi
 import InputSalaryModal from '@/components/features/InputSalaryModal'
 import { formatManilaDateTime } from '@/lib/date'
 import { useOfflineTransactions, type OfflineTransaction } from '@/hooks/useOfflineTransactions'
-import type { Category } from './EditTransactionModal'
+import type { Category, TransactionRecord as AppTransactionRecord } from './EditTransactionModal'
 
 interface RelatedCategoryData {
     id: string
@@ -21,23 +21,12 @@ interface TransactionRecord {
     transaction_date: string
     created_at: string
     category_id: string | null
-    categories: RelatedCategoryData | RelatedCategory[] | null
+    categories: RelatedCategoryData | RelatedCategoryData[] | null
     categoryName?: string
     categoryIcon?: string
 }
 
-interface ActiveCycleExpense {
-    id: string
-    amount: number
-    type: 'expense' | 'income'
-    note: string | null
-    transaction_date: string
-    created_at?: string
-    category_id: string | null
-    categories: RelatedCategoryData | RelatedCategory[] | null
-    categoryName?: string
-    categoryIcon?: string
-}
+type ActiveCycleExpense = AppTransactionRecord
 
 interface DashboardOverviewProps {
     transactions: TransactionRecord[]
