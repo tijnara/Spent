@@ -3,14 +3,14 @@
 import ActiveCycleExpensesList from '@/components/features/ActiveCycleExpensesList'
 import InputSalaryModal from '@/components/features/InputSalaryModal'
 import { formatManilaDateTime } from '@/lib/date'
-import { OfflineTransaction, useOfflineTransactions } from '@/hooks/useOfflineTransactions'
+import { useOfflineTransactions, type OfflineTransaction } from '@/hooks/useOfflineTransactions'
+import type { Category } from './EditTransactionModal'
 
-interface CategoryData {
+interface RelatedCategoryData {
     id: string
     name: string
     icon: string
-    color: string
-    type: string
+    color?: string
 }
 
 interface TransactionRecord {
@@ -21,7 +21,7 @@ interface TransactionRecord {
     transaction_date: string
     created_at: string
     category_id: string | null
-    categories: CategoryData | CategoryData[] | null
+    categories: RelatedCategoryData | RelatedCategory[] | null
     categoryName?: string
     categoryIcon?: string
 }
@@ -32,16 +32,16 @@ interface ActiveCycleExpense {
     type: 'expense' | 'income'
     note: string | null
     transaction_date: string
-    created_at: string
+    created_at?: string
     category_id: string | null
-    categories: CategoryData | CategoryData[] | null
+    categories: RelatedCategoryData | RelatedCategory[] | null
     categoryName?: string
     categoryIcon?: string
 }
 
 interface DashboardOverviewProps {
     transactions: TransactionRecord[]
-    categories: CategoryData[]
+    categories: Category[]
     today: string
     totalSalaryInputted: number
     activeSalaryDeducted: number
@@ -65,7 +65,7 @@ interface DisplayTransaction {
     isOffline: boolean
 }
 
-function getCategory(transaction: TransactionRecord, categories: CategoryData[]) {
+function getCategory(transaction: TransactionRecord, categories: Category[]) {
     const related = Array.isArray(transaction.categories)
         ? transaction.categories[0]
         : transaction.categories
@@ -76,7 +76,7 @@ function getCategory(transaction: TransactionRecord, categories: CategoryData[])
     }
 }
 
-function pendingCategory(transaction: OfflineTransaction, categories: CategoryData[]) {
+function pendingCategory(transaction: OfflineTransaction, categories: Category[]) {
     const category = categories.find((item) => item.id === transaction.category_id)
     return {
         name: transaction.new_category_name || category?.name || 'Uncategorized',
