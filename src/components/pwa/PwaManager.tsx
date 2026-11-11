@@ -162,7 +162,7 @@ export default function PwaManager() {
         if (!rawQueue) return
 
         try {
-            let queue = (JSON.parse(rawQueue) as Array<Record<string, string>>).map((item) => ({
+            let queue: Array<Record<string, string>> = (JSON.parse(rawQueue) as Array<Record<string, string>>).map((item) => ({
                 ...item,
                 queue_id: item.queue_id || `${Date.now()}-${Math.random().toString(36).slice(2)}`,
             }))
