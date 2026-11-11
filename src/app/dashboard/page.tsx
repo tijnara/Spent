@@ -2,12 +2,10 @@ import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { connection } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { getManilaDate, formatManilaDateTime } from '@/lib/date'
+import { getManilaDate } from '@/lib/date'
 import AddTransactionModal from '@/components/features/AddTransactionModal'
 import DashboardOfflineOverview from '@/components/features/DashboardOfflineOverview'
-import InputSalaryModal from '@/components/features/InputSalaryModal'
 import SalaryHistorySection, { SalaryCycle } from '@/components/features/SalaryHistorySection'
-import ActiveCycleExpensesList from '@/components/features/ActiveCycleExpensesList'
 
 interface CategoryData {
     id: string
