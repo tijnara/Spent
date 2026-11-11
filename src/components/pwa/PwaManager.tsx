@@ -189,6 +189,7 @@ export default function PwaManager() {
                 }
                 setPendingTransactions(queue)
                 setSyncCount(queue.length)
+                window.dispatchEvent(new Event('spent:offline-queue-updated'))
             }
 
             window.location.reload()
