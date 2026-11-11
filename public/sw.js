@@ -1,85 +1,64 @@
-const CACHE_NAME = 'spent-cache-v1';
+const CACHE_NAME = 'spent-cache-v2';
+const PRECACHE_ASSETS = ['/offline.html', '/manifest.json'];
 
-// Essential assets to cache immediately on install
-const PRECACHE_ASSETS = [
-    '/',
-    '/dashboard',
-    '/login',
-    '/signup',
-    '/manifest.json',
-    '/icon.svg',
-];
-
-// Install: Cache core application shell
 self.addEventListener('install', (event) => {
     event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            return cache.addAll(PRECACHE_ASSETS);
-        }).then(() => self.skipWaiting())
+        caches.open(CACHE_NAME)
+            .then((cache) => cache.addAll(PRECACHE_ASSETS))
+            .then(() => self.skipWaiting())
     );
 });
 
-// Activate: Clean up any old caches
 self.addEventListener('activate', (event) => {
     event.waitUntil(
-        caches.keys().then((cacheNames) => {
-            return Promise.all(
-                cacheNames.map((name) => {
-                    if (name !== CACHE_NAME) {
-                        return caches.delete(name);
-                    }
-                })
-            );
-        }).then(() => self.clients.claim())
+        caches.keys()
+            .then((names) => Promise.all(names.map((name) => {
+                if (name !== CACHE_NAME) return caches.delete(name);
+            })))
+            .then(() => self.clients.claim())
     );
 });
 
-// Fetch: Network-First with Cache Fallback (Ideal for dynamic financial apps)
 self.addEventListener('fetch', (event) => {
-    // Only handle GET requests
-    if (event.request.method !== 'GET') return;
+    const request = event.request;
+    if (request.method !== 'GET') return;
 
-    const url = new URL(event.request.url);
+    const url = new URL(request.url);
+    if (url.origin !== self.location.origin) return;
 
-    // Cache static assets (CSS, JS, Fonts, Icons) with Stale-While-Revalidate
-    if (
-        url.pathname.startsWith('/_next/static/') ||
-        url.pathname.endsWith('.svg') ||
-        url.pathname.endsWith('.png') ||
-        url.pathname.endsWith('.woff2')
-    ) {
+    if (request.mode === 'navigate') {
         event.respondWith(
-            caches.match(event.request).then((cachedResponse) => {
-                if (cachedResponse) return cachedResponse;
-                return fetch(event.request).then((networkResponse) => {
-                    if (networkResponse.status === 200) {
-                        const responseClone = networkResponse.clone();
-                        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
-                    }
-                    return networkResponse;
-                });
+            fetch(request).then((response) => {
+                if (response.status < 500) return response;
+                return caches.match('/offline.html').then((offline) => offline || response);
+            }).catch(async () => {
+                return (await caches.match('/offline.html')) || new Response(
+                    'Spent is offline. Reopen the app when a connection is available.',
+                    { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } }
+                );
             })
         );
         return;
     }
 
-    // HTML Pages: Try network first; fallback to offline cache if disconnected
-    event.respondWith(
-        fetch(event.request)
-            .then((networkResponse) => {
-                if (networkResponse.status === 200) {
-                    const responseClone = networkResponse.clone();
-                    caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
-                }
-                return networkResponse;
-            })
-            .catch(() => {
-                return caches.match(event.request).then((cachedResponse) => {
-                    if (cachedResponse) return cachedResponse;
-                    if (event.request.mode === 'navigate') {
-                        return caches.match('/dashboard') || caches.match('/');
+    if (
+        url.pathname.startsWith('/_next/static/') ||
+        url.pathname === '/manifest.json' ||
+        url.pathname.endsWith('.svg') ||
+        url.pathname.endsWith('.png') ||
+        url.pathname.endsWith('.woff2')
+    ) {
+        event.respondWith(
+            caches.match(request).then((cached) => {
+                if (cached) return cached;
+                return fetch(request).then((response) => {
+                    if (response.ok) {
+                        const copy = response.clone();
+                        caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
                     }
+                    return response;
                 });
             })
-    );
+        );
+    }
 });

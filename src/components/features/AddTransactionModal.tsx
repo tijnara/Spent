@@ -79,8 +79,26 @@ export default function AddTransactionModal({
             await addTransaction(formData)
             router.refresh()
             handleClose()
-        } catch (err: any) {
-            alert(err.message || 'Failed to save transaction')
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err)
+            const isConnectionError =
+                !navigator.onLine || /network|fetch|offline|unexpected response|failed to invoke/i.test(message)
+
+            if (isConnectionError) {
+                const queue = JSON.parse(localStorage.getItem('spent_offline_queue') || '[]') as Array<Record<string, string>>
+                const transaction = Object.fromEntries(
+                    Array.from(formData.entries()).map(([key, value]) => [key, String(value)])
+                ) as Record<string, string>
+                queue.push({
+                    ...transaction,
+                    queue_id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+                })
+                localStorage.setItem('spent_offline_queue', JSON.stringify(queue))
+                alert('Saved on this device. Spent will sync it when your internet connection returns.')
+                handleClose()
+            } else {
+                alert(message || 'Failed to save transaction')
+            }
         } finally {
             setLoading(false)
         }
