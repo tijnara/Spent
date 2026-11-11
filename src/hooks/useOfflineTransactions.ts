@@ -33,9 +33,19 @@ export function saveOfflineTransaction(formData: FormData): OfflineTransaction {
     const transaction = Object.fromEntries(
         Array.from(formData.entries()).map(([key, value]) => [key, String(value)])
     ) as Record<string, string>
+    const type = transaction.type
+    const amount = transaction.amount
+    const transaction_date = transaction.transaction_date
+
+    if ((type !== 'expense' && type !== 'income') || !amount || !transaction_date) {
+        throw new Error('The transaction is missing required fields.')
+    }
 
     const saved: OfflineTransaction = {
         ...transaction,
+        type,
+        amount,
+        transaction_date,
         queue_id: Date.now() + '-' + Math.random().toString(36).slice(2),
         created_at: new Date().toISOString(),
     }
