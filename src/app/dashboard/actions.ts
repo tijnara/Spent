@@ -149,7 +149,6 @@ export async function updateTransaction(formData: FormData) {
             category_id,
             note,
             transaction_date,
-            created_at: new Date().toISOString(),
         })
         .match({ id, user_id: user.id })
 
@@ -184,6 +183,7 @@ export async function deleteTransaction(formData: FormData) {
 
     revalidatePath('/dashboard')
     revalidatePath('/dashboard/stats')
+    revalidatePath('/dashboard/settings')
 }
 
 export async function inputSalary(formData: FormData) {

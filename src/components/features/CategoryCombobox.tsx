@@ -7,7 +7,7 @@ export interface CategoryOption {
     name: string
     type: string
     icon: string
-    color: string
+    color?: string
 }
 
 interface CategoryComboboxProps {

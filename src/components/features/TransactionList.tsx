@@ -1,17 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { deleteTransaction } from '../../app/dashboard/actions'
 import { formatManilaDateTime } from '../../lib/date'
-import EditTransactionModal, { TransactionRecord } from './EditTransactionModal'
-
-interface Category {
-    id: string
-    name: string
-    type: string
-    icon: string
-    color: string
-}
+import EditTransactionModal, { TransactionRecord, Category } from './EditTransactionModal'
 
 interface TransactionListProps {
     transactions: TransactionRecord[]
@@ -19,6 +12,7 @@ interface TransactionListProps {
 }
 
 export default function TransactionList({ transactions, categories }: TransactionListProps) {
+    const router = useRouter()
     const [editingTransaction, setEditingTransaction] = useState<TransactionRecord | null>(null)
     const [deletingId, setDeletingId] = useState<string | null>(null)
 
@@ -33,9 +27,11 @@ export default function TransactionList({ transactions, categories }: Transactio
 
         try {
             await deleteTransaction(formData)
-        } catch (err) {
+            router.refresh()
+        } catch (err: unknown) {
             console.error(err)
-            alert('Failed to delete transaction')
+            const message = err instanceof Error ? err.message : 'Failed to delete transaction'
+            alert(message)
         } finally {
             setDeletingId(null)
         }
@@ -77,18 +73,18 @@ export default function TransactionList({ transactions, categories }: Transactio
                                     </p>
 
                                     <div className="flex items-center gap-2 text-xs text-muted mt-0.5 flex-wrap">
-                    <span className="font-medium text-[11px]">
-                      {formatManilaDateTime(tx.created_at || tx.transaction_date)}
-                    </span>
+                                        <span className="font-medium text-[11px]">
+                                            {formatManilaDateTime(tx.created_at || tx.transaction_date)}
+                                        </span>
                                         <span>•</span>
                                         {categoryData?.name ? (
                                             <span className="font-semibold text-card-foreground">
-                        {categoryData.name}
-                      </span>
+                                                {categoryData.name}
+                                            </span>
                                         ) : (
                                             <span className="text-[11px] font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded">
-                        ⚠️ No Category (Tap to assign)
-                      </span>
+                                                ⚠️ No Category (Tap to assign)
+                                            </span>
                                         )}
                                     </div>
                                 </div>
@@ -96,19 +92,19 @@ export default function TransactionList({ transactions, categories }: Transactio
 
                             {/* Amount and Action Buttons */}
                             <div className="flex items-center gap-3">
-                <span
-                    className={`font-black text-sm sm:text-base ${
-                        tx.type === 'income'
-                            ? 'text-emerald-600 dark:text-emerald-400'
-                            : 'text-card-foreground'
-                    }`}
-                >
-                  {tx.type === 'income' ? '+₱' : '-₱'}
-                    {Number(tx.amount).toLocaleString('en-PH', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                    })}
-                </span>
+                                <span
+                                    className={`font-black text-sm sm:text-base ${
+                                        tx.type === 'income'
+                                            ? 'text-emerald-600 dark:text-emerald-400'
+                                            : 'text-card-foreground'
+                                    }`}
+                                >
+                                    {tx.type === 'income' ? '+₱' : '-₱'}
+                                    {Number(tx.amount).toLocaleString('en-PH', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2,
+                                    })}
+                                </span>
 
                                 <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
                                     <button
@@ -118,7 +114,7 @@ export default function TransactionList({ transactions, categories }: Transactio
                                             e.stopPropagation()
                                             setEditingTransaction(tx)
                                         }}
-                                        className="p-1.5 text-muted hover:text-spent-violet dark:hover:text-spent-yellow rounded-lg hover:bg-input-bg transition-colors"
+                                        className="p-1.5 text-muted hover:text-spent-violet dark:hover:text-spent-yellow rounded-lg hover:bg-input-bg transition-colors cursor-pointer"
                                     >
                                         ✏️
                                     </button>
@@ -127,7 +123,7 @@ export default function TransactionList({ transactions, categories }: Transactio
                                         title="Delete transaction"
                                         disabled={deletingId === tx.id}
                                         onClick={(e) => handleQuickDelete(e, tx.id)}
-                                        className="p-1.5 text-muted hover:text-red-500 rounded-lg hover:bg-red-500/10 transition-colors disabled:opacity-40"
+                                        className="p-1.5 text-muted hover:text-red-500 rounded-lg hover:bg-red-500/10 transition-colors disabled:opacity-40 cursor-pointer"
                                     >
                                         {deletingId === tx.id ? '⏳' : '🗑️'}
                                     </button>
@@ -139,6 +135,7 @@ export default function TransactionList({ transactions, categories }: Transactio
             </div>
 
             <EditTransactionModal
+                key={editingTransaction?.id || 'modal'}
                 transaction={editingTransaction}
                 categories={categories}
                 onClose={() => setEditingTransaction(null)}

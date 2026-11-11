@@ -6,6 +6,7 @@ import { getManilaDate, formatManilaDateTime } from '@/lib/date'
 import AddTransactionModal from '@/components/features/AddTransactionModal'
 import InputSalaryModal from '@/components/features/InputSalaryModal'
 import SalaryHistorySection, { SalaryCycle } from '@/components/features/SalaryHistorySection'
+import ActiveCycleExpensesList from '@/components/features/ActiveCycleExpensesList'
 
 interface CategoryData {
     id: string
@@ -121,9 +122,12 @@ async function DashboardContent() {
                 return {
                     id: t.id,
                     amount: Number(t.amount),
+                    type: t.type,
                     note: t.note,
                     transaction_date: t.transaction_date,
                     created_at: t.created_at,
+                    category_id: t.category_id,
+                    categories: t.categories,
                     categoryName: cat?.name,
                     categoryIcon: cat?.icon,
                 }
@@ -303,44 +307,15 @@ async function DashboardContent() {
                         )}
                     </div>
 
-                    {activeCycle && activeCycle.expenses.length > 0 ? (
-                        <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-                            {activeCycle.expenses.map((exp) => (
-                                <div
-                                    key={exp.id}
-                                    className="flex items-center justify-between p-3 rounded-2xl bg-input-bg border border-input-border hover:border-spent-violet/30 transition-colors"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <span className="w-8 h-8 rounded-xl bg-card border border-card-border flex items-center justify-center text-sm shrink-0">
-                                            {exp.categoryIcon || '🏷️'}
-                                        </span>
-                                        <div>
-                                            <p className="font-extrabold text-sm text-card-foreground">
-                                                {exp.note || exp.categoryName || 'EXPENSE'}
-                                            </p>
-                                            <p className="text-[10px] text-muted font-medium">
-                                                {exp.categoryName ? `${exp.categoryName} • ` : ''}{exp.transaction_date}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <span className="font-black text-sm text-red-500 tabular-nums">
-                                        -₱{exp.amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="p-4 rounded-2xl bg-input-bg border border-input-border text-center">
-                            <p className="text-xs text-muted font-medium">
-                                No expenses logged against this salary yet. Tap <strong className="text-spent-yellow">+ Add Spent</strong> to record your first deduction.
-                            </p>
-                        </div>
-                    )}
+                    <ActiveCycleExpensesList
+                        expenses={activeCycle?.expenses || []}
+                        categories={categories || []}
+                    />
                 </div>
             </section>
 
             {/* Historical Closed Salary Periods */}
-            <SalaryHistorySection cycles={pastCycles} />
+            <SalaryHistorySection cycles={pastCycles} categories={categories || []} />
 
             {/* Floating Add Spent Trigger */}
             <AddTransactionModal categories={categories || []} />
