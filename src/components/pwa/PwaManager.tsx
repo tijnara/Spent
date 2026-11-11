@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { addTransaction } from '@/app/dashboard/actions'
 
 interface BeforeInstallPromptEvent extends Event {
@@ -8,18 +9,84 @@ interface BeforeInstallPromptEvent extends Event {
     userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
 }
 
+const PAGE_CACHE_NAME = 'spent-pages-v3'
+const STATIC_CACHE_NAME = 'spent-static-v3'
+
+async function cacheCurrentPage(pathname: string) {
+    if (!navigator.onLine || !('caches' in window)) return
+
+    const pageUrl = new URL(pathname, window.location.origin)
+    pageUrl.search = ''
+    try {
+        const response = await fetch(pageUrl.toString(), {
+            cache: 'no-store',
+            credentials: 'same-origin',
+        })
+        if (
+            response.ok &&
+            !response.redirected &&
+            response.headers.get('content-type')?.includes('text/html') &&
+            new URL(response.url).pathname === pageUrl.pathname
+        ) {
+            const pageCache = await caches.open(PAGE_CACHE_NAME)
+            await pageCache.put(pageUrl.toString(), response.clone())
+        }
+
+        const assetCache = await caches.open(STATIC_CACHE_NAME)
+        const assetUrls = Array.from(document.querySelectorAll('script[src], link[href]'))
+            .map((element) => element instanceof HTMLScriptElement
+                ? element.src
+                : (element as HTMLLinkElement).href)
+            .filter((assetUrl) => {
+                const url = new URL(assetUrl, window.location.origin)
+                return url.origin === window.location.origin && url.pathname.startsWith('/_next/static/')
+            })
+
+        await Promise.allSettled(assetUrls.map(async (assetUrl) => {
+            const cached = await assetCache.match(assetUrl)
+            if (cached) return
+            const asset = await fetch(assetUrl, { credentials: 'same-origin' })
+            if (asset.ok) await assetCache.put(assetUrl, asset.clone())
+        }))
+    } catch (error) {
+        console.warn('Could not cache the current Spent page for offline use:', error)
+    }
+}
+
 export default function PwaManager() {
+    const pathname = usePathname()
     const [isOnline, setIsOnline] = useState(true)
+    const [pendingTransactions, setPendingTransactions] = useState<Array<Record<string, string>>>([])
+    const [showPendingTransactions, setShowPendingTransactions] = useState(false)
     const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
     const [showInstallBtn, setShowInstallBtn] = useState(false)
     const [isIos, setIsIos] = useState(false)
     const [showIosPrompt, setShowIosPrompt] = useState(false)
     const [syncCount, setSyncCount] = useState(0)
 
-    // 1. Register Service Worker and listen to connection
+    function refreshPendingTransactions() {
+        try {
+            const queue = JSON.parse(localStorage.getItem('spent_offline_queue') || '[]') as Array<Record<string, string>>
+            setPendingTransactions(queue)
+        } catch {
+            setPendingTransactions([])
+        }
+    }
+
+    // 1. Register the service worker, cache this page, and listen to connection changes
     useEffect(() => {
         setIsOnline(navigator.onLine)
+        refreshPendingTransactions()
 
+        if (process.env.NODE_ENV === 'production') {
+            const timer = window.setTimeout(() => {
+                void cacheCurrentPage(pathname)
+            }, 250)
+            return () => window.clearTimeout(timer)
+        }
+    }, [pathname, isOnline])
+
+    useEffect(() => {
         if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
             navigator.serviceWorker
                 .register('/sw.js')
@@ -31,9 +98,30 @@ export default function PwaManager() {
             syncOfflineQueue()
         }
         const handleOffline = () => setIsOnline(false)
+        const handleAuthReady = () => syncOfflineQueue()
+
+        const handleQueueUpdated = () => refreshPendingTransactions()
+        const handleOfflineAppNavigation = (event: MouseEvent) => {
+            if (navigator.onLine || event.defaultPrevented || event.button !== 0 ||
+                event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+
+            const target = event.target
+            if (!(target instanceof Element)) return
+            const link = target.closest('a[href]') as HTMLAnchorElement | null
+            if (!link || link.target || link.hasAttribute('download')) return
+
+            const destination = new URL(link.href, window.location.origin)
+            if (destination.origin !== window.location.origin) return
+
+            event.preventDefault()
+            window.location.assign(destination.toString())
+        }
 
         window.addEventListener('online', handleOnline)
         window.addEventListener('offline', handleOffline)
+        window.addEventListener('spent:offline-queue-updated', handleQueueUpdated)
+        window.addEventListener('spent:auth-ready', handleAuthReady)
+        document.addEventListener('click', handleOfflineAppNavigation, true)
 
         // Check for iOS (where beforeinstallprompt doesn't fire)
         const userAgent = window.navigator.userAgent.toLowerCase()
@@ -59,6 +147,9 @@ export default function PwaManager() {
             window.removeEventListener('online', handleOnline)
             window.removeEventListener('offline', handleOffline)
             window.removeEventListener('beforeinstallprompt', handleBeforeInstall)
+            window.removeEventListener('spent:offline-queue-updated', handleQueueUpdated)
+            window.removeEventListener('spent:auth-ready', handleAuthReady)
+            document.removeEventListener('click', handleOfflineAppNavigation, true)
         }
     }, [])
 
@@ -78,26 +169,31 @@ export default function PwaManager() {
             if (queue.length === 0) return
 
             localStorage.setItem('spent_offline_queue', JSON.stringify(queue))
+            setPendingTransactions(queue)
             setSyncCount(queue.length)
 
             while (queue.length > 0) {
-                const [item, ...remaining] = queue
+                const [item] = queue
                 const formData = new FormData()
                 Object.entries(item).forEach(([key, value]) => {
                     if (key !== 'queue_id') formData.set(key, value)
                 })
                 await addTransaction(formData)
-                queue = remaining
+
+                const latestQueue = JSON.parse(localStorage.getItem('spent_offline_queue') || '[]') as Array<Record<string, string>>
+                queue = latestQueue.filter((candidate) => candidate.queue_id !== item.queue_id)
                 if (queue.length > 0) {
                     localStorage.setItem('spent_offline_queue', JSON.stringify(queue))
                 } else {
                     localStorage.removeItem('spent_offline_queue')
                 }
+                setPendingTransactions(queue)
                 setSyncCount(queue.length)
             }
 
             window.location.reload()
         } catch (err) {
+            refreshPendingTransactions()
             console.error('Failed to sync offline items. They remain saved on this device:', err)
         }
     }
@@ -122,9 +218,79 @@ export default function PwaManager() {
         <>
             {/* Offline Alert Banner */}
             {!isOnline && (
-                <div className="fixed top-0 left-0 right-0 z-50 bg-amber-500 text-stone-900 py-1.5 px-4 text-center text-xs font-black shadow-md flex items-center justify-center gap-2">
+                <div className="fixed top-0 left-0 right-0 z-50 bg-amber-500 text-stone-900 py-1.5 px-4 text-center text-xs font-black shadow-md flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
                     <span>⚡ You are currently offline.</span>
-                    <span className="font-medium">Spent will save transactions locally and sync when reconnected.</span>
+                    <span className="font-medium">You are viewing the last saved page. New transactions will sync when reconnected.</span>
+                    {pendingTransactions.length > 0 && (
+                        <button
+                            type="button"
+                            onClick={() => setShowPendingTransactions(true)}
+                            className="rounded-lg bg-stone-900/10 px-2 py-1 font-black underline"
+                        >
+                            Review {pendingTransactions.length} saved
+                        </button>
+                    )}
+                </div>
+            )}
+
+            {showPendingTransactions && (
+                <div
+                    className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4"
+                    onClick={() => setShowPendingTransactions(false)}
+                >
+                    <section
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="pending-transactions-title"
+                        className="w-full max-w-md max-h-[80vh] overflow-y-auto rounded-3xl border border-card-border bg-card p-6 text-card-foreground shadow-2xl"
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        <div className="mb-4 flex items-start justify-between gap-4">
+                            <div>
+                                <h2 id="pending-transactions-title" className="text-lg font-extrabold">
+                                    Saved on this device
+                                </h2>
+                                <p className="mt-1 text-xs text-muted">
+                                    These entries use the same transaction fields and will be added to your account after sync.
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setShowPendingTransactions(false)}
+                                aria-label="Close saved transactions"
+                                className="rounded-lg px-2 py-1 text-xl font-bold text-muted hover:text-card-foreground"
+                            >
+                                ×
+                            </button>
+                        </div>
+                        <ul className="divide-y divide-card-border">
+                            {pendingTransactions.map((item, index) => (
+                                <li key={item.queue_id || index} className="flex items-start justify-between gap-4 py-3">
+                                    <div className="min-w-0">
+                                        <p className="truncate text-sm font-bold">
+                                            {item.new_category_name || (item.category_id ? 'Selected category' : 'Uncategorized')}
+                                        </p>
+                                        <p className="mt-0.5 text-xs text-muted">
+                                            {[item.transaction_date, item.note].filter(Boolean).join(' · ')}
+                                        </p>
+                                    </div>
+                                    <span className="shrink-0 text-sm font-extrabold tabular-nums">
+                                        {item.type === 'income' ? '+' : '−'}₱{Number(item.amount || 0).toLocaleString('en-PH', {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2,
+                                        })}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                        <button
+                            type="button"
+                            onClick={() => setShowPendingTransactions(false)}
+                            className="mt-5 w-full rounded-xl bg-spent-violet px-4 py-3 text-sm font-extrabold text-white"
+                        >
+                            Back to dashboard
+                        </button>
+                    </section>
                 </div>
             )}
 
