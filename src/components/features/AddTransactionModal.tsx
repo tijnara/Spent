@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { addTransaction } from '../../app/dashboard/actions'
 import { getManilaDate } from '../../lib/date'
+import { saveOfflineTransaction } from '@/hooks/useOfflineTransactions'
 import CategoryCombobox from './CategoryCombobox'
 import ManageCategoriesModal, { CategoryItem } from './ManageCategoriesModal'
 
@@ -11,19 +12,6 @@ function toTitleCase(str: string): string {
     return str.replace(/\b\w/g, (char) => char.toUpperCase())
 }
 
-function saveOfflineTransaction(formData: FormData) {
-    const queue = JSON.parse(localStorage.getItem('spent_offline_queue') || '[]') as Array<Record<string, string>>
-    const transaction = Object.fromEntries(
-        Array.from(formData.entries()).map(([key, value]) => [key, String(value)])
-    ) as Record<string, string>
-
-    queue.push({
-        ...transaction,
-        queue_id: Date.now() + '-' + Math.random().toString(36).slice(2),
-    })
-    localStorage.setItem('spent_offline_queue', JSON.stringify(queue))
-    window.dispatchEvent(new Event('spent:offline-queue-updated'))
-}
 
 interface AddTransactionModalProps {
     categories: CategoryItem[]
@@ -92,7 +80,7 @@ export default function AddTransactionModal({
         try {
             if (!navigator.onLine) {
                 saveOfflineTransaction(formData)
-                alert('Saved on this device. It will appear in the dashboard after syncing.')
+                alert('Saved on this device. It now appears in your dashboard and will sync when you’re back online.')
                 handleClose()
                 return
             }
@@ -107,7 +95,7 @@ export default function AddTransactionModal({
 
             if (isConnectionError) {
                 saveOfflineTransaction(formData)
-                alert('Saved on this device. It will appear in the dashboard after syncing.')
+                alert('Saved on this device. It now appears in your dashboard and will sync when you’re back online.')
                 handleClose()
             } else {
                 alert(message || 'Failed to save transaction')
